@@ -32,6 +32,8 @@ func main() {
 	fmt.Println("Logs from your program will appear here!")
 
 	_ = Make()
+
+	time.Sleep(200 * time.Millisecond)
 }
 
 func (rd *Redis) handleConnection(conn net.Conn) {
