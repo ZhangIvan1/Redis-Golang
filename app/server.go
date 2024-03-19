@@ -27,7 +27,9 @@ type request struct {
 type Redis struct {
 	listener net.Listener
 
-	store map[string]string
+	store          map[string]string
+	timestamp      map[string]time.Time
+	timeExpiration map[string]time.Duration
 }
 
 func main() {
@@ -140,13 +142,20 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 			return err
 		}
 	case strings.HasPrefix(command[0], "set"):
-		rd.store[command[1]] = command[2]
-		if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
+		if err := rd.setStore(command); err != nil {
 			return err
+		} else {
+			if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
+				return err
+			}
 		}
 	case strings.HasPrefix(command[0], "get"):
-		if _, err := conn.Write([]byte("$" + strconv.Itoa(len(rd.store[command[1]])) + "\r\n" + rd.store[command[1]] + "\r\n")); err != nil {
+		if length, value, err := rd.getStore(command[1]); err != nil {
 			return err
+		} else {
+			if _, err := conn.Write([]byte("$" + length + "\r\n" + value + "\r\n")); err != nil {
+				return err
+			}
 		}
 	default:
 		return errors.New("no matching command")
@@ -165,6 +174,33 @@ func (rd *Redis) formatCommand(command []string) string {
 		res += " "
 	}
 	return res[:len(res)-1]
+}
+
+func (rd *Redis) setStore(command []string) error {
+	rd.store[command[1]] = command[2]
+	switch {
+	case strings.HasPrefix(command[3], "px"):
+		rd.timestamp[command[1]] = time.Now()
+		if millisecond, err := strconv.Atoi(command[4]); err != nil {
+			return err
+		} else {
+			rd.timeExpiration[command[1]] = time.Duration(millisecond) * time.Millisecond
+		}
+	}
+
+	return nil
+}
+
+func (rd *Redis) getStore(key string) (string, string, error) {
+	if rd.store[key] == "" {
+		return "", "", errors.New("no key \"" + key + "\" found")
+	}
+
+	if time.Since(rd.timestamp[key]) > rd.timeExpiration[key] {
+		return "-1", "", errors.New("key \"" + key + "\" is expired")
+	}
+
+	return strconv.Itoa(len(rd.store[key])), rd.store[key], nil
 }
 
 func (rd *Redis) handleConnectionTicker() {
