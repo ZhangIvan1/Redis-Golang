@@ -5,6 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="99360c3c-74c8-4581-89dd-4cc660f0c61c" name="更改" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/server.go" beforeDir="false" afterPath="$PROJECT_DIR$/app/server.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -66,7 +67,7 @@
       <window_info anchor="bottom" id="Version Control" order="0" weight="0.33047426" />
       <window_info anchor="bottom" id="Problems" order="1" />
       <window_info anchor="bottom" id="Problems View" order="2" />
-      <window_info anchor="bottom" id="Terminal" order="3" weight="0.39261365" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="3" visible="true" weight="0.39261365" />
       <window_info anchor="bottom" id="Services" order="4" />
       <window_info anchor="right" id="Endpoints" show_stripe_button="false" />
       <window_info anchor="right" id="make" show_stripe_button="false" side_tool="true" />

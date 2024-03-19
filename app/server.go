@@ -117,7 +117,7 @@ func handleResponseLines(reqLine string, commands *[][]string) error {
 
 			command := []string{}
 			for j := 0; j < n; j++ {
-				command = append(command, lineParts[i+j+1])
+				command = append(command, lineParts[i+j])
 			}
 			*commands = append(*commands, command)
 			i += len(command)
