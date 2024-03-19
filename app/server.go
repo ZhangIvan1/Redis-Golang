@@ -36,6 +36,11 @@ type Config struct {
 	masterPort string
 }
 
+func (config Config) String() string {
+	return fmt.Sprintf("netType: %s, host: %s, port: %s, masterHost: %s, masterPort: %s",
+		config.netType, config.host, config.port, config.masterHost, config.masterPort)
+}
+
 type Request struct {
 	Lines    []string
 	Commands [][]string
