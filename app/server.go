@@ -143,6 +143,9 @@ func runCommand(command []string, conn net.Conn) error {
 }
 
 func formatCommand(command []string) string {
+	if len(command) == 0 {
+		return "the command is empty!"
+	}
 	res := ""
 	for i := 0; i < len(command); i++ {
 		res += command[i]
