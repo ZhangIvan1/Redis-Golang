@@ -287,9 +287,9 @@ func Make(config Config) *Redis {
 	rd.timeExpiration = make(map[string]time.Duration)
 
 	if config.masterHost == "" {
-		rd.role = SLAVE
-	} else {
 		rd.role = MASTER
+	} else {
+		rd.role = SLAVE
 	}
 
 	err := error(nil)
