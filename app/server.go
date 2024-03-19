@@ -194,7 +194,7 @@ func (rd *Redis) setStore(command []string) error {
 }
 
 func (rd *Redis) getStore(key string) (string, string, error) {
-	if rd.store[key] == "" {
+	if _, exists := rd.store[key]; exists {
 		return "", "", errors.New("no key \"" + key + "\" found")
 	}
 
