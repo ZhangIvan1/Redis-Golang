@@ -11,7 +11,7 @@ const (
 	masterReplOffset string = "master_repl_offset"
 )
 
-func (rd *Redis) info() (string, error) {
+func (rd *Redis) info() string {
 	//info := "# Replication\r\n"
 	info := ""
 
@@ -20,7 +20,7 @@ func (rd *Redis) info() (string, error) {
 	appendInfo(&info, masterReplOffset, strconv.Itoa(rd.masterReplOffset))
 
 	fmt.Sprintln("info:", info)
-	return info, nil
+	return info
 }
 
 func appendInfo(info *string, key, value string) {

@@ -100,6 +100,7 @@ func Make(config Config) *Redis {
 		hash := sha1.New()
 		hash.Write([]byte(config.String()))
 		rd.masterReplId = fmt.Sprintf("%x", hash.Sum(nil))
+
 	} else {
 		rd.role = SLAVE
 	}
