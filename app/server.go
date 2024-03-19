@@ -115,7 +115,7 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 			}
 			*commands = append(*commands, command)
 			fmt.Println("inserted command:", formatCommand(command))
-			i += 2 * n
+			i += 2*n + 1
 		default:
 			i++
 		}
