@@ -153,7 +153,7 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 		if length, value, err := rd.getStore(command[1]); err != nil {
 			return err
 		} else {
-			if _, err := conn.Write([]byte("$"+length+"\r\n"+value == ""+"\r\n")); err != nil {
+			if _, err := conn.Write([]byte(length + value)); err != nil {
 				return err
 			}
 		}
