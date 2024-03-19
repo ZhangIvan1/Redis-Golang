@@ -267,7 +267,7 @@ func Make(config Config) *Redis {
 	rd.store = make(map[string]string)
 	rd.timestamp = make(map[string]time.Time)
 	rd.timeExpiration = make(map[string]time.Duration)
-	rd.role = SLAVE
+	rd.role = MASTER
 
 	err := error(nil)
 	rd.listener, err = net.Listen(config.netType, config.host+":"+config.port)
