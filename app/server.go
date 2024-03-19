@@ -14,7 +14,10 @@ const (
 	port    string = "6379"
 )
 
-type request []string
+type request struct {
+	Lines    []string
+	Commands []string
+}
 
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
@@ -49,9 +52,9 @@ func handleConnection(conn net.Conn) {
 		os.Exit(1)
 	}
 
-	for req := 0; req < len(reqs); req++ {
-		fmt.Println("Now handling: " + reqs[req])
-		if err := handleResponse(conn, reqs[req]); err != nil {
+	for req := 0; req < len(reqs.Lines); req++ {
+		fmt.Println("Now handling: " + reqs.Lines[req])
+		if err := handleResponseLines(reqs.Lines[req], &reqs.Commands); err != nil {
 			fmt.Println("Error writing output: ", err.Error())
 			os.Exit(1)
 		}
@@ -69,19 +72,30 @@ func buildRequest(conn net.Conn) (req request, err error) {
 		os.Exit(1)
 	}
 
-	req = strings.Split(string(readBuffer[:n]), "\n")
+	req.Lines = strings.Split(string(readBuffer[:n]), "\n")
 
 	return req, nil
 }
 
-func handleResponse(conn net.Conn, req string) error {
-	switch {
-	case req != "":
-		if _, err := conn.Write([]byte("PONG\r\n")); err != nil {
-			return err
-		}
-	default:
-		return errors.New("No matching command")
+func handleResponseLines(reqLine string, commands *[]string) error {
+	lineParts := strings.Split(reqLine, " ")
+
+	if len(lineParts) == 0 {
+		return errors.New("no command input")
 	}
+
+	if commands == nil {
+		commands = &[]string{}
+	}
+
+	for i := 0; i < len(lineParts); i++ {
+		switch {
+		case strings.HasPrefix(lineParts[i], "*") || strings.HasPrefix(lineParts[i], "&"):
+			continue
+		default:
+			*commands = append(*commands, lineParts[i])
+		}
+	}
+
 	return nil
 }
