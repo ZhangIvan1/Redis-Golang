@@ -16,10 +16,12 @@ func (rd *Redis) info() string {
 	info := ""
 
 	appendInfo(&info, role, rd.role)
-	appendInfo(&info, masterReplId, rd.masterReplId)
-	appendInfo(&info, masterReplOffset, strconv.Itoa(rd.masterReplOffset))
-
 	fmt.Sprintln("info:", info)
+	appendInfo(&info, masterReplId, rd.masterReplId)
+	fmt.Sprintln("info:", info)
+	appendInfo(&info, masterReplOffset, strconv.Itoa(rd.masterReplOffset))
+	fmt.Sprintln("info:", info)
+
 	return info
 }
 
