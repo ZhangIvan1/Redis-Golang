@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	role               string = "role"
-	master_replid      string = "masterReplId"
-	master_repl_offset string = "masterReplOffset"
+	role             string = "role"
+	masterReplId     string = "master_replid"
+	masterReplOffset string = "master_repl_offset"
 )
 
 func (rd *Redis) info() (string, error) {
@@ -16,8 +16,8 @@ func (rd *Redis) info() (string, error) {
 	info := ""
 
 	appendInfo(&info, role, rd.role)
-	appendInfo(&info, master_replid, rd.masterReplId)
-	appendInfo(&info, master_repl_offset, strconv.Itoa(rd.masterReplOffset))
+	appendInfo(&info, masterReplId, rd.masterReplId)
+	appendInfo(&info, masterReplOffset, strconv.Itoa(rd.masterReplOffset))
 
 	fmt.Sprintln("info:", info)
 	return info, nil
