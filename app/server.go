@@ -50,7 +50,7 @@ func handleConnection(conn net.Conn) {
 	}
 
 	for req := 0; req < len(reqs); req++ {
-		fmt.Println("Now handling:" + reqs[req])
+		fmt.Println("Now handling: " + reqs[req])
 		if err := handleResponse(conn, reqs[req]); err != nil {
 			fmt.Println("Error writing output: ", err.Error())
 			os.Exit(1)
@@ -76,7 +76,7 @@ func buildRequest(conn net.Conn) (req request, err error) {
 
 func handleResponse(conn net.Conn, req string) error {
 	switch {
-	case req == "ping":
+	case req != "":
 		if _, err := conn.Write([]byte("PONG\r\n")); err != nil {
 			return err
 		}
