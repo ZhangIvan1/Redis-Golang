@@ -107,7 +107,7 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 			}
 
 			var command []string
-			for j := i + 2; j < i+2*n; j++ {
+			for j := i + 1; j < i+2*n; j++ {
 				if strings.HasPrefix(reqLine[i], "$") {
 					j++
 					command = append(command, reqLine[j])
