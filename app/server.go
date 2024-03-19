@@ -106,6 +106,8 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 				errors.New("failed to get command parts")
 			}
 
+			fmt.Println("this command include " + strconv.Itoa(n) + " parts")
+
 			command := []string{}
 			for j := 0; j < n; j++ {
 				command = append(command, reqLine[i+j])
