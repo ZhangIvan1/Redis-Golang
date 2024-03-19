@@ -49,9 +49,8 @@ func handleConnection(conn net.Conn) {
 		os.Exit(1)
 	}
 
-	fmt.Println(reqs)
-
 	for req := 0; req < len(reqs); req++ {
+		fmt.Println("Now handling:" + reqs[req])
 		if err := handleResponse(conn, reqs[req]); err != nil {
 			fmt.Println("Error writing output: ", err.Error())
 			os.Exit(1)
