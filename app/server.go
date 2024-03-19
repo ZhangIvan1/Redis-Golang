@@ -110,8 +110,8 @@ func handleResponseLines(reqLine string, commands *[]string) error {
 
 func runCommand(command string, conn net.Conn) error {
 
-	switch command {
-	case "ping":
+	switch {
+	case strings.HasPrefix(command, "ping"):
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
