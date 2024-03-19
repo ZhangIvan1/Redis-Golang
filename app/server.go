@@ -71,7 +71,7 @@ func handleConnection(conn net.Conn) {
 }
 
 func buildRequest(conn net.Conn) (req request, err error) {
-	defer conn.Close()
+
 	readBuffer := make([]byte, 1024)
 
 	n, err := conn.Read(readBuffer)
@@ -112,7 +112,7 @@ func runCommand(command string, conn net.Conn) error {
 
 	switch {
 	case strings.HasPrefix(command, "ping"):
-		fmt.Println("match \"ping\"")
+		fmt.Println("matched \"ping\"")
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
