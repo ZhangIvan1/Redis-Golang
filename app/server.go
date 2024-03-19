@@ -101,7 +101,7 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 	for i := 0; i < len(reqLine); i++ {
 		switch {
 		case strings.HasPrefix(reqLine[i], "*"):
-			fmt.Sprintln(strings.TrimPrefix(reqLine[i], "*"))
+			fmt.Sprintln("len" + strings.TrimPrefix(reqLine[i], "*"))
 			n, err := strconv.Atoi(strings.TrimPrefix(reqLine[i], "*"))
 			if err != nil {
 				errors.New("failed to get command parts")
