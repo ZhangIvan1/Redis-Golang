@@ -43,6 +43,11 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 		if err := rd.handleReplConf(conn, command); err != nil {
 			return err
 		}
+	case strings.HasPrefix(command[0], "PSYNC"):
+		if err := rd.handlePSync(conn, command); err != nil {
+			return err
+		}
+
 	default:
 		return errors.New("no matching command")
 		//return nil

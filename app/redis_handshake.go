@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -51,6 +52,13 @@ func (rd *Redis) handshakeTicker() {
 
 func (rd *Redis) handleReplConf(conn net.Conn, command []string) error {
 	if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (rd *Redis) handlePSync(conn net.Conn, command []string) error {
+	if _, err := conn.Write([]byte("+FULLRESYNC " + rd.masterReplId + " " + strconv.Itoa(rd.masterReplOffset) + "\r\n")); err != nil {
 		return err
 	}
 	return nil
