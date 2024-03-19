@@ -144,8 +144,9 @@ func runCommand(command []string, conn net.Conn) error {
 
 func formatCommand(command []string) string {
 	res := ""
-	for part := 0; part < len(command); part++ {
-		res += command[part] + " "
+	for i := 0; i < len(command); i++ {
+		res += command[i]
+		res += " "
 	}
 	return res[:len(res)-1]
 }
