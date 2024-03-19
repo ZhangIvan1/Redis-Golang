@@ -153,7 +153,7 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 		if length, value, err := rd.getStore(command[1]); err != nil {
 			return err
 		} else {
-			if _, err := conn.Write([]byte("$" + length + "\r\n" + value + "\r\n")); err != nil {
+			if _, err := conn.Write([]byte("$"+length+"\r\n"+value == ""+"\r\n")); err != nil {
 				return err
 			}
 		}
@@ -204,11 +204,11 @@ func (rd *Redis) getStore(key string) (string, string, error) {
 			delete(rd.store, key)
 			delete(rd.timestamp, key)
 			delete(rd.timeExpiration, key)
-			return "-1", "", errors.New("key \"" + key + "\" is expired")
+			return "$-1\r\n", "", nil
 		}
 	}
 
-	return strconv.Itoa(len(rd.store[key])), rd.store[key], nil
+	return "$" + strconv.Itoa(len(rd.store[key])) + "\r\n", rd.store[key] + "\r\n", nil
 }
 
 func (rd *Redis) handleConnectionTicker() {
