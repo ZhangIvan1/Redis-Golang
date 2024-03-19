@@ -14,7 +14,7 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 		if _, err := conn.Write([]byte(info)); err != nil {
 			return err
 		}
-	case strings.HasPrefix(command[0], "ping"):
+	case strings.HasPrefix(command[0], "ping") || strings.HasPrefix(command[0], "PING"):
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
