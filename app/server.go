@@ -72,7 +72,7 @@ func handleConnection(conn net.Conn) {
 			}
 		}()
 
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(30 * time.Millisecond)
 	}
 }
 
