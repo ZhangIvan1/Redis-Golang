@@ -182,6 +182,8 @@ func (rd *Redis) handleConnectionTicker() {
 
 func Make() *Redis {
 	rd := &Redis{}
+	rd.store = make(map[string]string)
+
 	err := error(nil)
 	rd.listener, err = net.Listen(netType, host+":"+port)
 	if err != nil {
