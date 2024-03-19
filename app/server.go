@@ -49,6 +49,8 @@ type Redis struct {
 	role             string
 	masterReplId     string
 	masterReplOffset int
+	masterHost       string
+	masterPort       string
 }
 
 func main() {
@@ -103,6 +105,8 @@ func Make(config Config) *Redis {
 
 	} else {
 		rd.role = SLAVE
+		rd.masterHost = config.masterHost
+		rd.masterPort = config.masterPort
 	}
 
 	rd.masterReplOffset = 0
@@ -114,6 +118,9 @@ func Make(config Config) *Redis {
 	}
 
 	go rd.handleConnectionTicker()
+	if rd.role == SLAVE {
+		go rd.handshakeTicker()
+	}
 
 	return rd
 }
