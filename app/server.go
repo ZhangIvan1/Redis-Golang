@@ -114,7 +114,7 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 				command = append(command, reqLine[i+j])
 			}
 			*commands = append(*commands, command)
-			i += len(command)
+			i += n
 			continue
 		case reqLine[i] == "":
 			continue
