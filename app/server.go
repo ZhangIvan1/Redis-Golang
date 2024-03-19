@@ -139,12 +139,12 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 		if _, err := conn.Write([]byte("$" + strconv.Itoa(len(formatString)) + "\r\n" + formatString + "\r\n")); err != nil {
 			return err
 		}
-	case strings.HasPrefix(command[0], "get"):
+	case strings.HasPrefix(command[0], "set"):
 		rd.store[command[1]] = command[2]
 		if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
 			return err
 		}
-	case strings.HasPrefix(command[0], "set"):
+	case strings.HasPrefix(command[0], "get"):
 		if _, err := conn.Write([]byte("$" + strconv.Itoa(len(rd.store[command[1]])) + "\r\n" + rd.store[command[1]+"\r\n"])); err != nil {
 			return err
 		}
