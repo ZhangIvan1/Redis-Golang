@@ -101,7 +101,7 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 	for i := 0; i < len(reqLine); {
 		switch {
 		case strings.HasPrefix(reqLine[i], "*"):
-			parts := reqLine[1:]
+			parts := reqLine[i][1:]
 			fmt.Println(parts)
 
 		default:
