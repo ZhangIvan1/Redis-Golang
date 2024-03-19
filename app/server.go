@@ -178,13 +178,15 @@ func (rd *Redis) formatCommand(command []string) string {
 
 func (rd *Redis) setStore(command []string) error {
 	rd.store[command[1]] = command[2]
-	switch {
-	case strings.HasPrefix(command[3], "px"):
-		rd.timestamp[command[1]] = time.Now()
-		if millisecond, err := strconv.Atoi(command[4]); err != nil {
-			return err
-		} else {
-			rd.timeExpiration[command[1]] = time.Duration(millisecond) * time.Millisecond
+	if len(command) > 3 {
+		switch {
+		case strings.HasPrefix(command[3], "px"):
+			rd.timestamp[command[1]] = time.Now()
+			if millisecond, err := strconv.Atoi(command[4]); err != nil {
+				return err
+			} else {
+				rd.timeExpiration[command[1]] = time.Duration(millisecond) * time.Millisecond
+			}
 		}
 	}
 
