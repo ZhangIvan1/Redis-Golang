@@ -12,7 +12,7 @@ func (rd *Redis) sendPing(conn net.Conn) {
 		fmt.Println("Error occur during handshaking to master:", err.Error())
 		return
 	}
-	go rd.sendReplConf(conn)
+	rd.sendReplConf(conn)
 }
 
 func (rd *Redis) sendReplConf(conn net.Conn) {
@@ -21,6 +21,15 @@ func (rd *Redis) sendReplConf(conn net.Conn) {
 		return
 	}
 	if _, err := conn.Write([]byte("*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n")); err != nil {
+		fmt.Println("Error occur during handshaking to master:", err.Error())
+		return
+	}
+
+	rd.sendPSync(conn)
+}
+
+func (rd *Redis) sendPSync(conn net.Conn) {
+	if _, err := conn.Write([]byte("*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n")); err != nil {
 		fmt.Println("Error occur during handshaking to master:", err.Error())
 		return
 	}
