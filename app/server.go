@@ -55,7 +55,15 @@ func handleConnection(conn net.Conn) {
 	for req := 0; req < len(reqs.Lines); req++ {
 		fmt.Println("Now handling: " + reqs.Lines[req])
 		if err := handleResponseLines(reqs.Lines[req], &reqs.Commands); err != nil {
-			fmt.Println("Error writing output: ", err.Error())
+			fmt.Println("Error handleResponseLines: ", err.Error())
+			os.Exit(1)
+		}
+	}
+
+	for com := 0; com < len(reqs.Commands); com++ {
+		fmt.Println("Now running: " + reqs.Commands[com])
+		if err := runCommand(reqs.Commands[com], conn); err != nil {
+			fmt.Println("Error runCommand: ", err.Error())
 			os.Exit(1)
 		}
 	}
@@ -97,5 +105,18 @@ func handleResponseLines(reqLine string, commands *[]string) error {
 		}
 	}
 
+	return nil
+}
+
+func runCommand(command string, conn net.Conn) error {
+
+	switch command {
+	case "ping":
+		if _, err := conn.Write([]byte("Pong\r\n")); err != nil {
+			return err
+		}
+	default:
+		return errors.New("no matching command")
+	}
 	return nil
 }

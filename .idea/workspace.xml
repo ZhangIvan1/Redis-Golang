@@ -67,7 +67,7 @@
       <window_info anchor="bottom" id="Version Control" order="0" weight="0.33047426" />
       <window_info anchor="bottom" id="Problems" order="1" />
       <window_info anchor="bottom" id="Problems View" order="2" />
-      <window_info anchor="bottom" id="Terminal" order="3" weight="0.2778409" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="3" visible="true" weight="0.2778409" />
       <window_info anchor="bottom" id="Services" order="4" />
       <window_info anchor="right" id="Endpoints" show_stripe_button="false" />
       <window_info anchor="right" id="make" show_stripe_button="false" side_tool="true" />
