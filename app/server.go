@@ -21,49 +21,40 @@ type request struct {
 	Commands [][]string
 }
 
+type Redis struct {
+	listener net.Listener
+
+	store map[string]string
+}
+
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
-	listener, err := net.Listen(netType, host+":"+port)
-	if err != nil {
-		fmt.Println("Failed to bind to port 6379")
-		os.Exit(1)
-	}
-
-	for {
-		connection, err := listener.Accept()
-
-		if err != nil {
-			fmt.Println("Error accepting connection: ", err.Error())
-			os.Exit(1)
-		}
-
-		go handleConnection(connection)
-	}
+	Make()
 }
 
-func handleConnection(conn net.Conn) {
+func (rd *Redis) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
 	fmt.Println("New connection from: ", conn.RemoteAddr().String())
 
 	for {
-		reqs, err := buildRequest(conn)
+		reqs, err := rd.buildRequest(conn)
 		if err != nil {
 			fmt.Println("Error reading data: ", err.Error())
 			os.Exit(1)
 		}
 
 		go func() {
-			if err := handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
+			if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
 				fmt.Println("Error handleResponseLines: ", err.Error())
 				os.Exit(1)
 			}
 
 			for com := 0; com < len(reqs.Commands); com++ {
-				fmt.Println("Now running: " + formatCommand(reqs.Commands[com]))
-				if err := runCommand(reqs.Commands[com], conn); err != nil {
+				fmt.Println("Now running: " + rd.formatCommand(reqs.Commands[com]))
+				if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
 					fmt.Println("Error runCommand:", err.Error())
 					os.Exit(1)
 				}
@@ -74,7 +65,7 @@ func handleConnection(conn net.Conn) {
 	}
 }
 
-func buildRequest(conn net.Conn) (req request, err error) {
+func (rd *Redis) buildRequest(conn net.Conn) (req request, err error) {
 
 	readBuffer := make([]byte, 1024)
 
@@ -93,7 +84,7 @@ func buildRequest(conn net.Conn) (req request, err error) {
 	return req, nil
 }
 
-func handleResponseLines(reqLine []string, commands *[][]string) error {
+func (rd *Redis) handleResponseLines(reqLine []string, commands *[][]string) error {
 	if commands == nil {
 		commands = &[][]string{}
 	}
@@ -114,7 +105,7 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 				}
 			}
 			*commands = append(*commands, command)
-			fmt.Println("inserted command:", formatCommand(command))
+			fmt.Println("inserted command:", rd.formatCommand(command))
 			i += 2*n + 1
 		default:
 			i++
@@ -124,14 +115,14 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 	return nil
 }
 
-func runCommand(command []string, conn net.Conn) error {
+func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 	switch {
 	case strings.HasPrefix(command[0], "ping"):
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
 	case strings.HasPrefix(command[0], "echo"):
-		formatString := formatCommand(command[1:])
+		formatString := rd.formatCommand(command[1:])
 		if _, err := conn.Write([]byte("$" + strconv.Itoa(len(formatString)) + "\r\n" + formatString + "\r\n")); err != nil {
 			return err
 		}
@@ -142,7 +133,7 @@ func runCommand(command []string, conn net.Conn) error {
 	return nil
 }
 
-func formatCommand(command []string) string {
+func (rd *Redis) formatCommand(command []string) string {
 	if len(command) == 0 {
 		return "-------the command is empty!--------"
 	}
@@ -152,4 +143,31 @@ func formatCommand(command []string) string {
 		res += " "
 	}
 	return res[:len(res)-1]
+}
+
+func (rd *Redis) handleConnectionTicker() {
+	for {
+		connection, err := rd.listener.Accept()
+
+		if err != nil {
+			fmt.Println("Error accepting connection: ", err.Error())
+			os.Exit(1)
+		}
+
+		go rd.handleConnection(connection)
+	}
+}
+
+func Make() *Redis {
+	rd := &Redis{}
+	err := error(nil)
+	rd.listener, err = net.Listen(netType, host+":"+port)
+	if err != nil {
+		fmt.Println("Failed to bind to port 6379")
+		os.Exit(1)
+	}
+
+	go rd.handleConnectionTicker()
+
+	return rd
 }
