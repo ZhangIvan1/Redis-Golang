@@ -106,10 +106,11 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 				errors.New("failed to get command parts")
 			}
 
-			fmt.Println("this command include " + strings.TrimPrefix(reqLine[i], "*") + " parts")
-
 			command := []string{}
 			for j := 0; j < n; j++ {
+				if strings.HasPrefix(reqLine[i+j], "$") {
+					continue
+				}
 				command = append(command, reqLine[i+j])
 			}
 			*commands = append(*commands, command)
