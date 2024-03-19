@@ -106,7 +106,7 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 				return errors.New("get command parts failed")
 			}
 
-			command := []string{}
+			var command []string
 			for j := i + 2; j < i+2*n; j++ {
 				if strings.HasPrefix(reqLine[i], "$") {
 					j++
