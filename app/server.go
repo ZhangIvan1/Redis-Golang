@@ -17,6 +17,9 @@ const (
 	DEFAULT_TYPE string = "tcp"
 	DEFAULT_HOST string = "0.0.0.0"
 	DEFAULT_PORT string = "6379"
+
+	DEFAULT_MASTER_HOST string = ""
+	DEFAULT_MASTER_PORT string = ""
 )
 
 const (
@@ -28,6 +31,9 @@ type Config struct {
 	netType string
 	host    string
 	port    string
+
+	masterHost string
+	masterPort string
 }
 
 type Request struct {
@@ -51,10 +57,20 @@ func main() {
 
 	args := os.Args
 
-	config := Config{netType: DEFAULT_TYPE, host: DEFAULT_HOST, port: DEFAULT_PORT}
+	config := Config{
+		netType:    DEFAULT_TYPE,
+		host:       DEFAULT_HOST,
+		port:       DEFAULT_PORT,
+		masterHost: DEFAULT_MASTER_HOST,
+		masterPort: DEFAULT_MASTER_PORT,
+	}
 	for i, arg := range args {
 		if arg == "--port" {
 			config.port = args[i+1]
+		}
+		if arg == "--replicaof" {
+			config.masterHost = args[i+1]
+			config.masterPort = args[i+2]
 		}
 	}
 
@@ -267,7 +283,12 @@ func Make(config Config) *Redis {
 	rd.store = make(map[string]string)
 	rd.timestamp = make(map[string]time.Time)
 	rd.timeExpiration = make(map[string]time.Duration)
-	rd.role = MASTER
+
+	if config.masterHost == "" {
+		rd.role = SLAVE
+	} else {
+		rd.role = MASTER
+	}
 
 	err := error(nil)
 	rd.listener, err = net.Listen(config.netType, config.host+":"+config.port)
