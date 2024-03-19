@@ -14,9 +14,14 @@ import (
 )
 
 const (
-	TYPE string = "tcp"
-	HOST string = "0.0.0.0"
-	PORT string = "6379"
+	DEFAULT_TYPE string = "tcp"
+	DEFAULT_HOST string = "0.0.0.0"
+	DEFAULT_PORT string = "6379"
+)
+
+const (
+	MASTER string = "master"
+	SLAVE  string = "slave"
 )
 
 type Config struct {
@@ -36,6 +41,8 @@ type Redis struct {
 	store          map[string]string
 	timestamp      map[string]time.Time
 	timeExpiration map[string]time.Duration
+
+	role string
 }
 
 func main() {
@@ -44,8 +51,7 @@ func main() {
 
 	args := os.Args
 
-	config := Config{netType: TYPE, host: HOST, port: PORT}
-	config.host = "0.0.0.0"
+	config := Config{netType: DEFAULT_TYPE, host: DEFAULT_HOST, port: DEFAULT_PORT}
 	for i, arg := range args {
 		if arg == "--port" {
 			config.port = args[i+1]
@@ -146,8 +152,23 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[][]string) err
 	return nil
 }
 
+func (rd *Redis) info() (string, error) {
+	info := "# Replication\r\n"
+	info = "role:" + rd.role + "\r\n"
+
+	return info, nil
+}
+
 func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 	switch {
+	case strings.HasPrefix(command[0], "info"):
+		if info, err := rd.info(); err != nil {
+			return err
+		} else {
+			if _, err := conn.Write([]byte(info)); err != nil {
+				return err
+			}
+		}
 	case strings.HasPrefix(command[0], "ping"):
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
@@ -245,6 +266,7 @@ func Make(config Config) *Redis {
 	rd.store = make(map[string]string)
 	rd.timestamp = make(map[string]time.Time)
 	rd.timeExpiration = make(map[string]time.Duration)
+	rd.role = sl
 
 	err := error(nil)
 	rd.listener, err = net.Listen(config.netType, config.host+":"+config.port)
