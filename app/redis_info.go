@@ -28,6 +28,6 @@ func (rd *Redis) info() string {
 
 func (info *Info) appendInfo(key, value string) {
 	item := key + ":" + value
-	info.length += len(item)
+	info.length += len(item) + 2
 	info.info += item + "\r\n"
 }
