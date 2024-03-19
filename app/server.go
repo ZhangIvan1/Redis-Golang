@@ -80,7 +80,7 @@ func buildRequest(conn net.Conn) (req request, err error) {
 		os.Exit(1)
 	}
 
-	req.Lines = strings.Split(string(readBuffer[:n]), "\n")
+	req.Lines = strings.Split(string(readBuffer[:n]), "\n\r")
 
 	return req, nil
 }
@@ -98,7 +98,7 @@ func handleResponseLines(reqLine string, commands *[]string) error {
 
 	for i := 0; i < len(lineParts); i++ {
 		switch {
-		case strings.HasPrefix(lineParts[i], "*") || strings.HasPrefix(lineParts[i], "$") || lineParts[i] == "":
+		case strings.HasPrefix(lineParts[i], "*") || strings.HasPrefix(lineParts[i], "$"):
 			continue
 		default:
 			*commands = append(*commands, lineParts[i])
