@@ -15,8 +15,8 @@ func (rd *Redis) info() string {
 	info := ""
 
 	info = appendInfo(info, role, rd.role)
-	info = appendInfo(info, masterReplId, rd.masterReplId)
-	info = appendInfo(info, masterReplOffset, strconv.Itoa(rd.masterReplOffset))
+	info = appendInfo(info, "master_replid", rd.masterReplId)
+	info = appendInfo(info, "master_repl_offset", strconv.Itoa(rd.masterReplOffset))
 
 	return info
 }
