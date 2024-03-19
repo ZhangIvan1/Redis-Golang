@@ -24,7 +24,7 @@ func (rd *Redis) info() string {
 	info.appendInfo(masterReplId, rd.masterReplId)
 	info.appendInfo(masterReplOffset, strconv.Itoa(rd.masterReplOffset))
 
-	fmt.Sprintln("info:", info)
+	fmt.Sprintln("info:", info.info)
 	return "$" + strconv.Itoa(info.length) + "\r\n" + info.info
 }
 
