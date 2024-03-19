@@ -1,6 +1,9 @@
 package main
 
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 const (
 	role               string = "role"
@@ -16,6 +19,7 @@ func (rd *Redis) info() (string, error) {
 	appendInfo(&info, master_replid, rd.masterReplId)
 	appendInfo(&info, master_repl_offset, strconv.Itoa(rd.masterReplOffset))
 
+	fmt.Sprintln("info:", info)
 	return info, nil
 }
 
