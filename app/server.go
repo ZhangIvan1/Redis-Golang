@@ -179,6 +179,7 @@ func (rd *Redis) formatCommand(command []string) string {
 func (rd *Redis) setStore(command []string) error {
 	rd.store[command[1]] = command[2]
 	rd.timestamp[command[1]] = time.Now()
+
 	if len(command) > 3 {
 		switch {
 		case strings.HasPrefix(command[3], "px"):
@@ -226,6 +227,8 @@ func (rd *Redis) handleConnectionTicker() {
 func Make() *Redis {
 	rd := &Redis{}
 	rd.store = make(map[string]string)
+	rd.timestamp = make(map[string]time.Time)
+	rd.timeExpiration = make(map[string]time.Duration)
 
 	err := error(nil)
 	rd.listener, err = net.Listen(netType, host+":"+port)
