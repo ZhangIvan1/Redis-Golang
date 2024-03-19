@@ -48,3 +48,10 @@ func (rd *Redis) handshakeTicker() {
 		go time.Sleep(20 * time.Millisecond)
 	}
 }
+
+func (rd *Redis) handleReplConf(conn net.Conn, command []string) error {
+	if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
+		return err
+	}
+	return nil
+}

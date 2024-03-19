@@ -39,6 +39,10 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 				return err
 			}
 		}
+	case strings.HasPrefix(command[0], "REPLCONF"):
+		if err := rd.handleReplConf(conn, command); err != nil {
+			return err
+		}
 	default:
 		return errors.New("no matching command")
 		//return nil
