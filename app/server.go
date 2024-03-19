@@ -120,6 +120,7 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 		case reqLine[i] == "":
 			continue
 		default:
+			continue
 		}
 	}
 
