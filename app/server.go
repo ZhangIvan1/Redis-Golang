@@ -74,6 +74,8 @@ func main() {
 		}
 	}
 
+	fmt.Println("config", config)
+
 	rd := Make(config)
 
 	c := make(chan os.Signal, 1)
