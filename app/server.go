@@ -14,12 +14,18 @@ import (
 )
 
 const (
-	netType string = "tcp"
-	host    string = "0.0.0.0"
-	port    string = "6379"
+	TYPE string = "tcp"
+	HOST string = "0.0.0.0"
+	PORT string = "6379"
 )
 
-type request struct {
+type Config struct {
+	netType string
+	host    string
+	port    string
+}
+
+type Request struct {
 	Lines    []string
 	Commands [][]string
 }
@@ -36,7 +42,17 @@ func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
-	rd := Make()
+	args := os.Args
+
+	config := Config{netType: TYPE, host: HOST, port: PORT}
+	config.host = "0.0.0.0"
+	for i, arg := range args {
+		if arg == "--port" {
+			config.port = args[i+1]
+		}
+	}
+
+	rd := Make(config)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -80,7 +96,7 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 	}
 }
 
-func (rd *Redis) buildRequest(conn net.Conn) (req request, err error) {
+func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 
 	readBuffer := make([]byte, 1024)
 
@@ -224,16 +240,16 @@ func (rd *Redis) handleConnectionTicker() {
 	}
 }
 
-func Make() *Redis {
+func Make(config Config) *Redis {
 	rd := &Redis{}
 	rd.store = make(map[string]string)
 	rd.timestamp = make(map[string]time.Time)
 	rd.timeExpiration = make(map[string]time.Duration)
 
 	err := error(nil)
-	rd.listener, err = net.Listen(netType, host+":"+port)
+	rd.listener, err = net.Listen(config.netType, config.host+":"+config.port)
 	if err != nil {
-		log.Fatalln("Failed to bind to port", port, err)
+		log.Fatalln("Failed to bind to port", config.port, err)
 	}
 
 	go rd.handleConnectionTicker()
