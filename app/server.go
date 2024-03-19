@@ -33,7 +33,7 @@ func main() {
 
 	_ = Make()
 
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(20 * time.Second)
 }
 
 func (rd *Redis) handleConnection(conn net.Conn) {
