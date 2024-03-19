@@ -12,6 +12,7 @@ func (rd *Redis) sendPing(conn net.Conn) {
 		fmt.Println("Error occur during handshaking to master:", err.Error())
 		return
 	}
+	go rd.sendReplConf(conn)
 }
 
 func (rd *Redis) sendReplConf(conn net.Conn) {
@@ -34,8 +35,6 @@ func (rd *Redis) handshakeTicker() {
 		}
 
 		go rd.sendPing(conn)
-
-		go rd.sendReplConf(conn)
 
 		go time.Sleep(20 * time.Millisecond)
 	}
