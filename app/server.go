@@ -119,11 +119,9 @@ func runCommand(command string, conn net.Conn) error {
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
-		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
-			return err
-		}
 	default:
-		return errors.New("no matching command")
+		//return errors.New("no matching command")
+		return nil
 	}
 	return nil
 }
