@@ -16,7 +16,7 @@ func (rd *Redis) sendPing(conn net.Conn) {
 }
 
 func (rd *Redis) sendReplConf(conn net.Conn) {
-	if _, err := conn.Write([]byte("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n6380\r\n")); err != nil {
+	if _, err := conn.Write([]byte("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n" + rd.config.port + "\r\n")); err != nil {
 		fmt.Println("Error occur during handshaking to master:", err.Error())
 		return
 	}

@@ -40,6 +40,8 @@ const (
 )
 
 type Redis struct {
+	config Config
+
 	listener net.Listener
 
 	store          map[string]string
@@ -93,6 +95,7 @@ func main() {
 
 func Make(config Config) *Redis {
 	rd := &Redis{}
+	rd.config = config
 	rd.store = make(map[string]string)
 	rd.timestamp = make(map[string]time.Time)
 	rd.timeExpiration = make(map[string]time.Duration)
