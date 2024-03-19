@@ -84,7 +84,7 @@ func buildRequest(conn net.Conn) (req request, err error) {
 		os.Exit(1)
 	}
 
-	req.Lines = strings.Split(string(readBuffer[:n]), "\n")
+	req.Lines = strings.Split(string(readBuffer[:n]), "\r\n")
 
 	for line := 0; line < len(req.Lines); line++ {
 		fmt.Println(req.Lines[line])
