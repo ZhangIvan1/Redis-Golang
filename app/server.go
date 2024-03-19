@@ -90,8 +90,6 @@ func buildRequest(conn net.Conn) (req request, err error) {
 		fmt.Println(req.Lines[line])
 	}
 
-	fmt.Println("reading completed")
-
 	return req, nil
 }
 
@@ -100,29 +98,14 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 		commands = &[][]string{}
 	}
 
-	for i := 0; i < len(reqLine); i++ {
+	for i := 0; i < len(reqLine); {
 		switch {
 		case strings.HasPrefix(reqLine[i], "*"):
-			n, err := strconv.Atoi(strings.TrimPrefix(reqLine[i], "*"))
-			if err != nil {
-				errors.New("failed to get command parts")
-			}
+			parts := reqLine[1:]
+			fmt.Println(parts)
 
-			command := []string{}
-			for j := i + 1; j < i+n; j++ {
-				if strings.HasPrefix(reqLine[j], "$") {
-					j--
-					continue
-				}
-				command = append(command, reqLine[j])
-			}
-			*commands = append(*commands, command)
-			i += n
-			continue
-		case reqLine[i] == "":
-			continue
 		default:
-			continue
+			i++
 		}
 	}
 
