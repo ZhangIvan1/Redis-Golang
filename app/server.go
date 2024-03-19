@@ -56,12 +56,9 @@ func handleConnection(conn net.Conn) {
 		}
 
 		go func() {
-			for req := 0; req < len(reqs.Lines); req++ {
-				fmt.Println("Now handling: " + reqs.Lines[req])
-				if err := handleResponseLines(reqs.Lines[req], &reqs.Commands); err != nil {
-					fmt.Println("Error handleResponseLines: ", err.Error())
-					os.Exit(1)
-				}
+			if err := handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
+				fmt.Println("Error handleResponseLines: ", err.Error())
+				os.Exit(1)
 			}
 
 			for com := 0; com < len(reqs.Commands); com++ {
@@ -96,33 +93,27 @@ func buildRequest(conn net.Conn) (req request, err error) {
 	return req, nil
 }
 
-func handleResponseLines(reqLine string, commands *[][]string) error {
-	lineParts := strings.Split(reqLine, " ")
-
-	if len(lineParts) == 0 {
-		return errors.New("no command input")
-	}
-
+func handleResponseLines(reqLine []string, commands *[][]string) error {
 	if commands == nil {
 		commands = &[][]string{}
 	}
 
-	for i := 0; i < len(lineParts); i++ {
+	for i := 0; i < len(reqLine); i++ {
 		switch {
-		case strings.HasPrefix(lineParts[i], "*"):
-			n, err := strconv.Atoi(strings.TrimPrefix(lineParts[i], "*"))
+		case strings.HasPrefix(reqLine[i], "*"):
+			n, err := strconv.Atoi(strings.TrimPrefix(reqLine[i], "*"))
 			if err != nil {
 				errors.New("failed to get command parts")
 			}
 
 			command := []string{}
 			for j := 0; j < n; j++ {
-				command = append(command, lineParts[i+j])
+				command = append(command, reqLine[i+j])
 			}
 			*commands = append(*commands, command)
 			i += len(command)
 			continue
-		case lineParts[i] == "":
+		case reqLine[i] == "":
 			continue
 		default:
 		}
