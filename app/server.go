@@ -6,9 +6,10 @@ import (
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
-	"sync"
+	"syscall"
 	"time"
 )
 
@@ -33,15 +34,17 @@ func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
-	var wg sync.WaitGroup
-	wg.Add(1)
+	rd := Make()
 
-	go func() {
-		defer wg.Done() // 完成时减少等待计数
-		_ = Make()
-	}()
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
-	wg.Wait()
+	<-c
+	fmt.Println("Shutting down the server...")
+
+	if err := rd.listener.Close(); err != nil {
+		fmt.Println("Error closing redis server:", err)
+	}
 }
 
 func (rd *Redis) handleConnection(conn net.Conn) {
@@ -173,8 +176,7 @@ func Make() *Redis {
 	err := error(nil)
 	rd.listener, err = net.Listen(netType, host+":"+port)
 	if err != nil {
-		log.Fatalln("Failed to bind to port 6379")
-		os.Exit(1)
+		log.Fatalln("Failed to bind to port", port, err)
 	}
 
 	go rd.handleConnectionTicker()
