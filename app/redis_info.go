@@ -23,7 +23,7 @@ func (rd *Redis) info() string {
 	info.appendInfo(masterReplId, rd.masterReplId)
 	info.appendInfo(masterReplOffset, strconv.Itoa(rd.masterReplOffset))
 
-	return "$" + strconv.Itoa(info.length) + "\r\n" + info.info
+	return "$" + strconv.Itoa(info.length-2) + "\r\n" + info.info
 }
 
 func (info *Info) appendInfo(key, value string) {
