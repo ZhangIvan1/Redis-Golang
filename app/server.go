@@ -61,6 +61,8 @@ func handleConnection(conn net.Conn) {
 				os.Exit(1)
 			}
 
+			fmt.Println("get ResponseLines: ", formatCommand(reqs.Lines))
+
 			for com := 0; com < len(reqs.Commands); com++ {
 				fmt.Println("Now running: " + formatCommand(reqs.Commands[com]))
 				if err := runCommand(reqs.Commands[com], conn); err != nil {
