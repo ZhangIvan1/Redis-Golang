@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 	switch {
 	case strings.HasPrefix(command[0], "info"):
 		info := rd.info()
+		fmt.Sprintln("info:", info)
 		if _, err := conn.Write([]byte(info)); err != nil {
 			return err
 		}
