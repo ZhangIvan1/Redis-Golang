@@ -101,9 +101,20 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 	for i := 0; i < len(reqLine); {
 		switch {
 		case strings.HasPrefix(reqLine[i], "*"):
-			parts := reqLine[i][1:]
-			fmt.Println(parts)
+			n, err := strconv.Atoi(reqLine[i][1:])
+			if err != nil {
+				return errors.New("get command parts failed")
+			}
 
+			command := []string{}
+			for j := i + 2; j < i+2*n; j++ {
+				if strings.HasPrefix(reqLine[i], "$") {
+					j++
+					command = append(command, reqLine[j])
+				}
+			}
+			*commands = append(*commands, command)
+			i += len(command)
 		default:
 			i++
 		}
