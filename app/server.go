@@ -111,7 +111,8 @@ func handleResponseLines(reqLine string, commands *[]string) error {
 func runCommand(command string, conn net.Conn) error {
 
 	switch {
-	case strings.HasPrefix(command, "ping"):
+	case command == "ping":
+		fmt.Println("match \"ping\"")
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
