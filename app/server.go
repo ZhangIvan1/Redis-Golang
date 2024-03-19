@@ -102,7 +102,9 @@ func handleResponseLines(reqLine string, commands *[]string) error {
 
 	for i := 0; i < len(lineParts); i++ {
 		switch {
-		case strings.HasPrefix(lineParts[i], "*") || strings.HasPrefix(lineParts[i], "$") || lineParts[i] == "":
+		case strings.HasPrefix(lineParts[i], "*") || strings.HasPrefix(lineParts[i], "$"):
+			continue
+		case lineParts[i] == "":
 			continue
 		default:
 			*commands = append(*commands, lineParts[i])
@@ -113,7 +115,6 @@ func handleResponseLines(reqLine string, commands *[]string) error {
 }
 
 func runCommand(command string, conn net.Conn) error {
-
 	switch {
 	case strings.HasPrefix(command, "ping"):
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
