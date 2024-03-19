@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -15,18 +14,14 @@ func (rd *Redis) info() string {
 	//info := "# Replication\r\n"
 	info := ""
 
-	appendInfo(&info, role, rd.role)
-	fmt.Sprintln("info:", info)
-	appendInfo(&info, masterReplId, rd.masterReplId)
-	fmt.Sprintln("info:", info)
-	appendInfo(&info, masterReplOffset, strconv.Itoa(rd.masterReplOffset))
-	fmt.Sprintln("info:", info)
+	info = appendInfo(info, role, rd.role)
+	info = appendInfo(info, masterReplId, rd.masterReplId)
+	info = appendInfo(info, masterReplOffset, strconv.Itoa(rd.masterReplOffset))
 
 	return info
 }
 
-func appendInfo(info *string, key, value string) {
+func appendInfo(info, key, value string) string {
 	item := key + ":" + value
-	newInfo := *info + "$" + strconv.Itoa(len(item)) + "\r\n" + item + "\r\n"
-	*info = newInfo
+	return info + "$" + strconv.Itoa(len(item)) + "\r\n" + item + "\r\n"
 }
