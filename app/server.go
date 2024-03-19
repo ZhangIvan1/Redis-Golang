@@ -80,7 +80,7 @@ func buildRequest(conn net.Conn) (req request, err error) {
 		os.Exit(1)
 	}
 
-	req.Lines = strings.Split(string(readBuffer[:n]), "\n\r")
+	req.Lines = strings.Split(string(readBuffer[:n]), "\n")
 
 	return req, nil
 }
