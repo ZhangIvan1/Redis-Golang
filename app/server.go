@@ -155,7 +155,7 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[][]string) err
 func (rd *Redis) info() (string, error) {
 	//info := "# Replication\r\n"
 	role := "role:" + rd.role
-	info := "$" + strconv.Itoa(len(role)) + "\r\n"
+	info := "$" + strconv.Itoa(len(role)) + "\r\n" + role
 
 	return info, nil
 }
