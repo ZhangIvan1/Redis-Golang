@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -46,28 +47,33 @@ func handleConnection(conn net.Conn) {
 
 	fmt.Println("New connection from: ", conn.RemoteAddr().String())
 
-	reqs, err := buildRequest(conn)
-	if err != nil {
-		fmt.Println("Error reading data: ", err.Error())
-		os.Exit(1)
-	}
-
-	for req := 0; req < len(reqs.Lines); req++ {
-		fmt.Println("Now handling: " + reqs.Lines[req])
-		if err := handleResponseLines(reqs.Lines[req], &reqs.Commands); err != nil {
-			fmt.Println("Error handleResponseLines: ", err.Error())
+	for {
+		reqs, err := buildRequest(conn)
+		if err != nil {
+			fmt.Println("Error reading data: ", err.Error())
 			os.Exit(1)
 		}
-	}
 
-	for com := 0; com < len(reqs.Commands); com++ {
-		fmt.Println("Now running: " + reqs.Commands[com])
-		if err := runCommand(reqs.Commands[com], conn); err != nil {
-			fmt.Println("Error runCommand:", err.Error())
-			os.Exit(1)
-		}
-	}
+		go func() {
+			for req := 0; req < len(reqs.Lines); req++ {
+				fmt.Println("Now handling: " + reqs.Lines[req])
+				if err := handleResponseLines(reqs.Lines[req], &reqs.Commands); err != nil {
+					fmt.Println("Error handleResponseLines: ", err.Error())
+					os.Exit(1)
+				}
+			}
 
+			for com := 0; com < len(reqs.Commands); com++ {
+				fmt.Println("Now running: " + reqs.Commands[com])
+				if err := runCommand(reqs.Commands[com], conn); err != nil {
+					fmt.Println("Error runCommand:", err.Error())
+					os.Exit(1)
+				}
+			}
+		}()
+
+		time.Sleep(20 * time.Millisecond)
+	}
 }
 
 func buildRequest(conn net.Conn) (req request, err error) {
