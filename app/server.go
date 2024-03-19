@@ -63,7 +63,7 @@ func handleConnection(conn net.Conn) {
 	for com := 0; com < len(reqs.Commands); com++ {
 		fmt.Println("Now running: " + reqs.Commands[com])
 		if err := runCommand(reqs.Commands[com], conn); err != nil {
-			fmt.Println("Error runCommand: ", err.Error())
+			fmt.Println("Error runCommand:", err.Error())
 			os.Exit(1)
 		}
 	}
@@ -112,7 +112,7 @@ func runCommand(command string, conn net.Conn) error {
 
 	switch command {
 	case "ping":
-		if _, err := conn.Write([]byte("Pong\r\n")); err != nil {
+		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
 	default:
