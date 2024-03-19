@@ -98,7 +98,7 @@ func handleResponseLines(reqLine string, commands *[]string) error {
 
 	for i := 0; i < len(lineParts); i++ {
 		switch {
-		case strings.HasPrefix(lineParts[i], "*") || strings.HasPrefix(lineParts[i], "&"):
+		case strings.HasPrefix(lineParts[i], "*") || strings.HasPrefix(lineParts[i], "$"):
 			continue
 		default:
 			*commands = append(*commands, lineParts[i])
