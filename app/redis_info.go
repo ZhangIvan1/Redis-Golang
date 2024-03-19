@@ -14,7 +14,7 @@ func (rd *Redis) info() (string, error) {
 
 	appendInfo(&info, role, rd.role)
 	appendInfo(&info, master_replid, rd.masterReplId)
-	appendInfo(&info, master_repl_offset, rd.masterReplOffset)
+	appendInfo(&info, master_repl_offset, strconv.Itoa(rd.masterReplOffset))
 
 	return info, nil
 }
