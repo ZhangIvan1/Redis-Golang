@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -17,7 +18,7 @@ const (
 
 type request struct {
 	Lines    []string
-	Commands []string
+	Commands [][]string
 }
 
 func main() {
@@ -64,7 +65,7 @@ func handleConnection(conn net.Conn) {
 			}
 
 			for com := 0; com < len(reqs.Commands); com++ {
-				fmt.Println("Now running: " + reqs.Commands[com])
+				fmt.Println("Now running: " + formatCommand(reqs.Commands[com]))
 				if err := runCommand(reqs.Commands[com], conn); err != nil {
 					fmt.Println("Error runCommand:", err.Error())
 					os.Exit(1)
@@ -95,7 +96,7 @@ func buildRequest(conn net.Conn) (req request, err error) {
 	return req, nil
 }
 
-func handleResponseLines(reqLine string, commands *[]string) error {
+func handleResponseLines(reqLine string, commands *[][]string) error {
 	lineParts := strings.Split(reqLine, " ")
 
 	if len(lineParts) == 0 {
@@ -103,33 +104,55 @@ func handleResponseLines(reqLine string, commands *[]string) error {
 	}
 
 	if commands == nil {
-		commands = &[]string{}
+		commands = &[][]string{}
 	}
 
 	for i := 0; i < len(lineParts); i++ {
 		switch {
 		case strings.HasPrefix(lineParts[i], "*") || strings.HasPrefix(lineParts[i], "$"):
+			n, err := strconv.Atoi(strings.TrimPrefix(lineParts[i], "*"))
+			if err != nil {
+				errors.New("failed to get command parts")
+			}
+
+			command := []string{}
+			for j := 0; j < n; j++ {
+				command = append(command, lineParts[i+j+1])
+			}
+			*commands = append(*commands, command)
+			i += len(command)
 			continue
 		case lineParts[i] == "":
 			continue
 		default:
-			*commands = append(*commands, lineParts[i])
-			fmt.Println("insert command: " + lineParts[i])
 		}
 	}
 
 	return nil
 }
 
-func runCommand(command string, conn net.Conn) error {
+func runCommand(command []string, conn net.Conn) error {
 	switch {
-	case strings.HasPrefix(command, "ping"):
+	case strings.HasPrefix(command[0], "ping"):
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
+	case strings.HasPrefix(command[0], "echo"):
+		formatString := formatCommand(command[0:])
+		if _, err := conn.Write([]byte("$" + strconv.Itoa(len(formatString)) + "\r\n" + formatString + "\r\n")); err != nil {
+			return err
+		}
 	default:
-		//return errors.New("no matching command")
-		return nil
+		return errors.New("no matching command")
+		//return nil
 	}
 	return nil
+}
+
+func formatCommand(command []string) string {
+	res := ""
+	for part := 0; part < len(command); part++ {
+		res += command[part] + " "
+	}
+	return res[:len(res)-1]
 }
