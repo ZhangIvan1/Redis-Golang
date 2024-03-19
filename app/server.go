@@ -178,10 +178,10 @@ func (rd *Redis) formatCommand(command []string) string {
 
 func (rd *Redis) setStore(command []string) error {
 	rd.store[command[1]] = command[2]
+	rd.timestamp[command[1]] = time.Now()
 	if len(command) > 3 {
 		switch {
 		case strings.HasPrefix(command[3], "px"):
-			rd.timestamp[command[1]] = time.Now()
 			if millisecond, err := strconv.Atoi(command[4]); err != nil {
 				return err
 			} else {
@@ -198,8 +198,13 @@ func (rd *Redis) getStore(key string) (string, string, error) {
 		return "", "", errors.New("no key \"" + key + "\" found")
 	}
 
-	if time.Since(rd.timestamp[key]) > rd.timeExpiration[key] {
-		return "-1", "", errors.New("key \"" + key + "\" is expired")
+	if expiryTime, exists := rd.timeExpiration[key]; exists {
+		if time.Since(rd.timestamp[key]) > expiryTime {
+			delete(rd.store, key)
+			delete(rd.timestamp, key)
+			delete(rd.timeExpiration, key)
+			return "-1", "", errors.New("key \"" + key + "\" is expired")
+		}
 	}
 
 	return strconv.Itoa(len(rd.store[key])), rd.store[key], nil
