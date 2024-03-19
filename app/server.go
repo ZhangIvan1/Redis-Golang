@@ -3,10 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -31,9 +33,15 @@ func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
 	fmt.Println("Logs from your program will appear here!")
 
-	_ = Make()
+	var wg sync.WaitGroup
+	wg.Add(1)
 
-	time.Sleep(20 * time.Second)
+	go func() {
+		defer wg.Done() // 完成时减少等待计数
+		_ = Make()
+	}()
+
+	wg.Wait()
 }
 
 func (rd *Redis) handleConnection(conn net.Conn) {
@@ -165,7 +173,7 @@ func Make() *Redis {
 	err := error(nil)
 	rd.listener, err = net.Listen(netType, host+":"+port)
 	if err != nil {
-		fmt.Println("Failed to bind to port 6379")
+		log.Fatalln("Failed to bind to port 6379")
 		os.Exit(1)
 	}
 
