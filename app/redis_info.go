@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -10,18 +11,25 @@ const (
 	masterReplOffset string = "master_repl_offset"
 )
 
-func (rd *Redis) info() string {
-	//info := "# Replication\r\n"
-	info := ""
-
-	info = appendInfo(info, role, rd.role)
-	info = appendInfo(info, "master_replid", rd.masterReplId)
-	info = appendInfo(info, "master_repl_offset", strconv.Itoa(rd.masterReplOffset))
-
-	return info
+type Info struct {
+	length int
+	info   string
 }
 
-func appendInfo(info, key, value string) string {
+func (rd *Redis) info() string {
+	//info := "# Replication\r\n"
+	info := &Info{0, ""}
+
+	info.appendInfo(role, rd.role)
+	info.appendInfo(masterReplId, rd.masterReplId)
+	info.appendInfo(masterReplOffset, strconv.Itoa(rd.masterReplOffset))
+
+	fmt.Sprintln("info:", info)
+	return "$" + strconv.Itoa(info.length) + "\r\n" + info.info
+}
+
+func (info *Info) appendInfo(key, value string) {
 	item := key + ":" + value
-	return info + "$" + strconv.Itoa(len(item)) + "\r\n" + item + "\r\n"
+	info.length += len(item)
+	info.info += item + "\r\n"
 }
