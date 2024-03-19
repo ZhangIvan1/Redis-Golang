@@ -145,7 +145,7 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 			return err
 		}
 	case strings.HasPrefix(command[0], "get"):
-		if _, err := conn.Write([]byte("$" + strconv.Itoa(len(rd.store[command[1]])) + "\r\n" + rd.store[command[1]+"\r\n"])); err != nil {
+		if _, err := conn.Write([]byte("$" + strconv.Itoa(len(rd.store[command[1]])) + "\r\n" + rd.store[command[1]] + "\r\n")); err != nil {
 			return err
 		}
 	default:
