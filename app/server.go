@@ -108,7 +108,7 @@ func handleResponseLines(reqLine []string, commands *[][]string) error {
 
 			var command []string
 			for j := i + 1; j < i+2*n; j++ {
-				if strings.HasPrefix(reqLine[i], "$") {
+				if strings.HasPrefix(reqLine[j], "$") {
 					j++
 					command = append(command, reqLine[j])
 				}
@@ -144,7 +144,7 @@ func runCommand(command []string, conn net.Conn) error {
 
 func formatCommand(command []string) string {
 	if len(command) == 0 {
-		return "the command is empty!"
+		return "-------the command is empty!--------"
 	}
 	res := ""
 	for i := 0; i < len(command); i++ {
