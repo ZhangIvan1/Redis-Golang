@@ -37,7 +37,7 @@ type Config struct {
 }
 
 func (config Config) String() string {
-	return fmt.Sprintf("config: {netType: %s, host: %s, port: %s, masterHost: %s, masterPort: %s}",
+	return fmt.Sprintf("{netType: %s, host: %s, port: %s, masterHost: %s, masterPort: %s}",
 		config.netType, config.host, config.port, config.masterHost, config.masterPort)
 }
 
@@ -79,7 +79,7 @@ func main() {
 		}
 	}
 
-	fmt.Println("config", config)
+	fmt.Println("config:", config)
 
 	rd := Make(config)
 
