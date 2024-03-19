@@ -71,6 +71,7 @@ func handleConnection(conn net.Conn) {
 }
 
 func buildRequest(conn net.Conn) (req request, err error) {
+
 	readBuffer := make([]byte, 1024)
 
 	n, err := conn.Read(readBuffer)
@@ -79,18 +80,10 @@ func buildRequest(conn net.Conn) (req request, err error) {
 		os.Exit(1)
 	}
 
-	reqStr := string(readBuffer[:n])
+	req.Lines = strings.Split(string(readBuffer[:n]), "\n")
 
-	var start, end int
-	for end = 0; end < len(reqStr); end++ {
-		if reqStr[end] == '\n' {
-			req.Lines = append(req.Lines, reqStr[start:end])
-			start = end + 1
-		}
-	}
-
-	if start < len(reqStr) {
-		req.Lines = append(req.Lines, reqStr[start:])
+	for line := 0; line < len(req.Lines); line++ {
+		fmt.Println(req.Lines[line])
 	}
 
 	return req, nil
