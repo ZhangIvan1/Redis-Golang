@@ -131,7 +131,7 @@ func runCommand(command []string, conn net.Conn) error {
 			return err
 		}
 	case strings.HasPrefix(command[0], "echo"):
-		formatString := formatCommand(command[0:])
+		formatString := formatCommand(command[1:])
 		if _, err := conn.Write([]byte("$" + strconv.Itoa(len(formatString)) + "\r\n" + formatString + "\r\n")); err != nil {
 			return err
 		}
