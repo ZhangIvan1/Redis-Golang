@@ -108,6 +108,7 @@ func handleResponseLines(reqLine string, commands *[]string) error {
 			continue
 		default:
 			*commands = append(*commands, lineParts[i])
+			fmt.Println("insert command: " + lineParts[i])
 		}
 	}
 
