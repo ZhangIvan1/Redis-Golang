@@ -34,7 +34,12 @@ func (cm *Command) formatArgs() string {
 
 func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 	switch {
-	case strings.HasPrefix(command.command, "info") || strings.HasPrefix(command.command, "INFO"):
+	case command.commandType == "+":
+		if err := rd.handleRepose(command, conn); err != nil {
+			return err
+		}
+
+	case command.command == "info" || command.command == "INFO":
 		info := rd.info()
 		if _, err := conn.Write([]byte(info)); err != nil {
 			return err
@@ -91,4 +96,10 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 		//return nil
 	}
 	return nil
+}
+
+func (rd *Redis) handleRepose(command Command, conn net.Conn) error {
+	switch {
+
+	}
 }
