@@ -100,6 +100,7 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 				if len(reqLine[i]) > nextPart {
 					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:nextPart])
 					reqLine[i] = reqLine[i][nextPart:]
+					fmt.Println("remaing:", reqLine[i])
 					i--
 				} else {
 					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i])
