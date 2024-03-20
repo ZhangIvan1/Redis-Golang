@@ -24,13 +24,12 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 			return
 		}
 
+		if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
+			fmt.Println("Error handleResponseLines: ", err.Error())
+			conn.Close()
+			return
+		}
 		go func() {
-			if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
-				fmt.Println("Error handleResponseLines: ", err.Error())
-				conn.Close()
-				return
-			}
-
 			for com := 0; com < len(reqs.Commands); com++ {
 				fmt.Println(
 					"Now running:",
