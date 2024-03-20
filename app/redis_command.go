@@ -18,6 +18,10 @@ func (cm *Command) formatCommand() string {
 }
 
 func (cm *Command) formatArgs() string {
+	if len(cm.args) == 0 {
+		return ""
+	}
+
 	res := ""
 	for i := 0; i < len(cm.args); i++ {
 		res += cm.args[i]
