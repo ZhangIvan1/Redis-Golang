@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type Request struct {
@@ -15,7 +14,6 @@ type Request struct {
 }
 
 func (rd *Redis) handleConnection(conn net.Conn) {
-	//defer conn.Close()
 
 	fmt.Println("New connection from:", conn.RemoteAddr().String())
 
@@ -40,12 +38,9 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 				)
 				if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
 					fmt.Println("Error runCommand:", err.Error())
-					os.Exit(1)
 				}
 			}
 		}()
-
-		time.Sleep(30 * time.Millisecond)
 	}
 }
 
