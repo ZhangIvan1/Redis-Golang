@@ -90,7 +90,11 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 		case strings.HasPrefix(reqLine[i], "$"):
 			continue
 		default:
-			(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i])
+			if (*commands)[len(*commands)-1].command == "" {
+				(*commands)[len(*commands)-1].command = reqLine[i]
+			} else {
+				(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i])
+			}
 		}
 	}
 
