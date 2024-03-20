@@ -10,7 +10,7 @@ import (
 )
 
 func (rd *Redis) setStore(command Command) error {
-	rd.store[command.args[0]] = command.args[0]
+	rd.store[command.args[0]] = command.args[1]
 	rd.timestamp[command.args[0]] = time.Now()
 
 	if len(command.args) > 2 {
