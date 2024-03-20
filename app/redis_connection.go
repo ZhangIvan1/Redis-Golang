@@ -96,7 +96,12 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 			if (*commands)[len(*commands)-1].command == "" {
 				(*commands)[len(*commands)-1].command = reqLine[i][:nextPart]
 			} else {
-				(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:nextPart])
+				if len(reqLine[i]) > nextPart {
+					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:nextPart])
+
+				} else {
+					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:len(reqLine[i])-1])
+				}
 			}
 		}
 	}
