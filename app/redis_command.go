@@ -33,6 +33,10 @@ func (cm *Command) formatArgs() string {
 	return res[:len(res)-1]
 }
 
+func (cm *Command) buildCommand() {
+
+}
+
 func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 	switch {
 	case command.commandType == "+":

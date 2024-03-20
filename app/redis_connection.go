@@ -35,6 +35,7 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 				"Now running:",
 				interface{}(reqs.Commands[com].formatCommand()),
 			)
+			reqs.Commands[com].commandOffset = len(reqs.Commands[com].buildRequest())
 			if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
 				fmt.Println("Error runCommand:", err.Error())
 				conn.Close()
