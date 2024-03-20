@@ -8,8 +8,10 @@ import (
 )
 
 type Command struct {
-	command string
-	args    []string
+	commandType   string
+	commandLength int
+	command       string
+	args          []string
 }
 
 func (cm *Command) formatCommand() string {

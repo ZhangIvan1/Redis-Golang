@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -75,27 +74,23 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 		commands = &[]Command{}
 	}
 
-	for i := 0; i < len(reqLine); {
+	for i := 0; i < len(reqLine); i++ {
 		switch {
 		case strings.HasPrefix(reqLine[i], "*"):
-			n, err := strconv.Atoi(reqLine[i][1:])
-			if err != nil {
-				return errors.New("get command parts failed")
+			*commands = append(*commands, Command{commandType: "*"})
+			if commandLength, err := strconv.Atoi(strings.TrimPrefix(reqLine[i], "*")); err != nil {
+				return err
+			} else {
+				(*commands)[len(*commands)-1].commandLength = commandLength
 			}
-
-			var command []string
-			for j := i + 1; j < i+2*n; j++ {
-				if strings.HasPrefix(reqLine[j], "$") {
-					j++
-					command = append(command, reqLine[j])
-				}
-			}
-			newCommand := Command{command[0], command[1:]}
-			*commands = append(*commands, newCommand)
-			fmt.Println("inserted command:", interface{}(newCommand.formatCommand()))
-			i += 2*n + 1
+			continue
+		case strings.HasPrefix(reqLine[i], "+"):
+			*commands = append(*commands, Command{commandType: "+", command: strings.TrimPrefix(reqLine[i], "+")})
+			continue
+		case strings.HasPrefix(reqLine[i], "$"):
+			continue
 		default:
-			i++
+			(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i])
 		}
 	}
 
