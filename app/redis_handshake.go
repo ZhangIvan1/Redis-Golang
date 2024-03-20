@@ -35,9 +35,6 @@ func (rd *Redis) sendPSync(conn net.Conn) {
 		fmt.Println("Error occur during handshaking to master:", err.Error())
 		return
 	}
-
-	rd.handleConnection(conn)
-
 }
 
 func (rd *Redis) handshakeTicker() {
