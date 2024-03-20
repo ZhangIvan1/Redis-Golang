@@ -104,6 +104,8 @@ func (rd *Redis) handleRepose(command Command, conn net.Conn) error {
 	switch {
 	case command.command == "PONG":
 		fmt.Println("Get +PONG")
+		rd.masterConn = conn
+		go rd.handleConnection(rd.masterConn)
 	case command.command == "OK":
 		fmt.Println("Get +OK")
 	case command.command == "FULLRESYNC":

@@ -54,6 +54,7 @@ type Redis struct {
 	masterReplOffset int
 	masterHost       string
 	masterPort       string
+	masterConn       net.Conn
 }
 
 func main() {

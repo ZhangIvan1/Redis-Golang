@@ -42,7 +42,7 @@ func (rd *Redis) handshakeTicker() {
 		fmt.Println("Error connecting to master:", err.Error())
 		os.Exit(1)
 	}
-	go rd.handleConnection(conn)
+	rd.masterConn = conn
 	go rd.sendPing(conn)
 }
 
