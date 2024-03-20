@@ -33,3 +33,7 @@ func (cm *Command) buildRequest() string {
 
 	return res
 }
+
+func (rd *Redis) listenReplication(conn net.Conn) {
+	rd.handleConnection(conn)
+}

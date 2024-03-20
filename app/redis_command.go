@@ -52,7 +52,7 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 	case strings.HasPrefix(command.command, "set") || strings.HasPrefix(command.command, "SET"):
 		if err := rd.setStore(command); err != nil {
 			return err
-		} else {
+		} else if rd.role == MASTER {
 			if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
 				return err
 			}
