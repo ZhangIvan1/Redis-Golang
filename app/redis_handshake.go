@@ -40,17 +40,15 @@ func (rd *Redis) sendPSync(conn net.Conn) {
 }
 
 func (rd *Redis) handshakeTicker() {
-	for {
-		conn, err := net.Dial(DEFAULT_TYPE, rd.masterHost+":"+rd.masterPort)
-		if err != nil {
-			fmt.Println("Error connecting to master:", err.Error())
-			os.Exit(1)
-		}
-
-		go rd.sendPing(conn)
-
-		time.Sleep(20 * time.Millisecond)
+	conn, err := net.Dial(DEFAULT_TYPE, rd.masterHost+":"+rd.masterPort)
+	if err != nil {
+		fmt.Println("Error connecting to master:", err.Error())
+		os.Exit(1)
 	}
+
+	go rd.sendPing(conn)
+
+	time.Sleep(20 * time.Millisecond)
 }
 
 func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {

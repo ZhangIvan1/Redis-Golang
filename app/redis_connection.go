@@ -18,13 +18,15 @@ type Request struct {
 func (rd *Redis) handleConnection(conn net.Conn) {
 	//defer conn.Close()
 
-	fmt.Println("New connection from: ", conn.RemoteAddr().String())
+	fmt.Println("New connection from:", conn.RemoteAddr().String())
 
 	for {
 		reqs, err := rd.buildRequest(conn)
 		if err != nil {
-			fmt.Println("Error reading data: ", err.Error())
-			os.Exit(1)
+			fmt.Println("Error reading data:", err.Error())
+			//os.Exit(1)
+			conn.Close()
+			return
 		}
 
 		go func() {
@@ -56,6 +58,8 @@ func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 	n, err := conn.Read(readBuffer)
 	if err != nil {
 		fmt.Println("Error reading data: ", err.Error())
+		conn.Close()
+		return req, err
 	}
 
 	req.Lines = strings.Split(string(readBuffer[:n]), "\r\n")
