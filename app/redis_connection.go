@@ -88,7 +88,8 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 				(*commands)[len(*commands)-1].commandLength = commandLength
 			}
 		case strings.HasPrefix(reqLine[i], "+"):
-			*commands = append(*commands, Command{commandType: "+", command: strings.TrimPrefix(reqLine[i], "+")})
+			responseLine := strings.Split(strings.TrimPrefix(reqLine[i], "+"), " ")
+			*commands = append(*commands, Command{commandType: "+", command: responseLine[0], args: responseLine[1:]})
 		case strings.HasPrefix(reqLine[i], "$"):
 			if _nextPart, err := strconv.Atoi(strings.TrimPrefix(reqLine[i], "$")); err != nil {
 				return err
