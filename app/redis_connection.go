@@ -100,7 +100,7 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:nextPart])
 
 				} else {
-					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:len(reqLine[i])-1])
+					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i])
 				}
 			}
 		}
