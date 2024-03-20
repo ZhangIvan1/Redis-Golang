@@ -49,13 +49,6 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 		if err := rd.handlePing(command, conn); err != nil {
 			return err
 		}
-		if rd.role == SLAVE {
-			if rd.masterConn != conn {
-				rd.masterConn.Close()
-				rd.masterConn = conn
-				go rd.handleConnection(rd.masterConn)
-			}
-		}
 
 	case command.command == "echo" || command.command == "ECHO":
 		args := command.formatArgs()

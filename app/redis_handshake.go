@@ -102,6 +102,10 @@ func (rd *Redis) handlePing(command Command, conn net.Conn) error {
 		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
 			return err
 		}
+	} else if rd.role == SLAVE && rd.masterConn != conn {
+		rd.masterConn.Close()
+		rd.masterConn = conn
+		go rd.handleConnection(rd.masterConn)
 	}
 	return nil
 }
