@@ -49,6 +49,11 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 		if err := rd.handlePing(command, conn); err != nil {
 			return err
 		}
+		if rd.role == SLAVE {
+			rd.masterConn.Close()
+			rd.masterConn = conn
+			go rd.handleConnection(rd.masterConn)
+		}
 
 	case command.command == "echo" || command.command == "ECHO":
 		args := command.formatArgs()
@@ -104,8 +109,6 @@ func (rd *Redis) handleRepose(command Command, conn net.Conn) error {
 	switch {
 	case command.command == "PONG":
 		fmt.Println("Get +PONG")
-		rd.masterConn = conn
-		go rd.handleConnection(rd.masterConn)
 	case command.command == "OK":
 		fmt.Println("Get +OK")
 	case command.command == "FULLRESYNC":
