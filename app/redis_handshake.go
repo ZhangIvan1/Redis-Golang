@@ -36,7 +36,7 @@ func (rd *Redis) sendPSync(conn net.Conn) {
 		return
 	}
 
-	rd.listenReplication(conn)
+	go rd.listenReplication(conn)
 }
 
 func (rd *Redis) handshakeTicker() {
