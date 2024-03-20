@@ -6,7 +6,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"time"
 )
 
 func (rd *Redis) sendPing(conn net.Conn) {
@@ -45,8 +44,6 @@ func (rd *Redis) handshakeTicker() {
 	}
 	go rd.handleConnection(conn)
 	go rd.sendPing(conn)
-
-	time.Sleep(20 * time.Millisecond)
 }
 
 func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {

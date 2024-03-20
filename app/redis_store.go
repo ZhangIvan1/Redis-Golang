@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -44,18 +43,4 @@ func (rd *Redis) getStore(command Command) (int, string, error) {
 	}
 
 	return len(rd.store[command.args[0]]), rd.store[command.args[0]], nil
-}
-
-func (rd *Redis) handleConnectionTicker() {
-	for {
-		connection, err := rd.listener.Accept()
-		//defer connection.Close()
-
-		if err != nil {
-			fmt.Println("Error accepting connection: ", err.Error())
-			os.Exit(1)
-		}
-
-		go rd.handleConnection(connection)
-	}
 }

@@ -93,7 +93,6 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 
 	default:
 		return errors.New(fmt.Sprintf("no matching command: %s", command.formatCommand()))
-		//return nil
 	}
 	return nil
 }
