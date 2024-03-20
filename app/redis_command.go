@@ -102,4 +102,5 @@ func (rd *Redis) handleRepose(command Command, conn net.Conn) error {
 	switch {
 
 	}
+	return nil
 }
