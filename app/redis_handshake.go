@@ -52,13 +52,15 @@ func (rd *Redis) handshakeTicker() {
 }
 
 func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {
-	newSlave := &Slave{toSlave: conn}
+	newSlave := Slave{toSlave: conn}
 
 	for i := 0; i < len(command.args); i++ {
 		if command.args[i] == "listening-port" {
 			newSlave.port = command.args[i+1]
 		}
 	}
+
+	rd.replicationSet = append(rd.replicationSet, newSlave)
 
 	if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
 		return err
