@@ -24,6 +24,8 @@ func (rd *Redis) setStore(command Command) error {
 		}
 	}
 
+	fmt.Printf("set [%s]%s\n", command.args[0], command.args[1])
+
 	return nil
 }
 
