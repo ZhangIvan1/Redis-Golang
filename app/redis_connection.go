@@ -58,6 +58,7 @@ func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 	}
 
 	req.Lines = strings.Split(string(readBuffer[:n]), "\r\n")
+	fmt.Println(req.Lines)
 
 	for line := 0; line < len(req.Lines); line++ {
 		fmt.Println(req.Lines[line])
