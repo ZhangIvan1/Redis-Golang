@@ -101,6 +101,7 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 func (rd *Redis) handleRepose(command Command, conn net.Conn) error {
 	switch {
 	case command.command == "PONG":
+	case command.command == "OK":
 	case command.command == "FULLRESYNC":
 		rd.masterReplId = command.args[0]
 		if offset, err := strconv.Atoi(command.args[1]); err != nil {
