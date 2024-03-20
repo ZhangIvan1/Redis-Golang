@@ -19,7 +19,7 @@ type Master struct {
 
 func (rd *Redis) doReplication(command Command) error {
 	for slave := 0; slave < len(rd.replicationSet); slave++ {
-		fmt.Printf("sent replication to: %d\n", rd.replicationSet[slave].port)
+		fmt.Printf("sent replication to: %s\n", rd.replicationSet[slave].port)
 		if _, err := rd.replicationSet[slave].toSlave.Write([]byte(command.buildRequest())); err != nil {
 			return err
 		}
