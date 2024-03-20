@@ -47,6 +47,7 @@ func (rd *Redis) getStore(command Command) (int, string, error) {
 func (rd *Redis) handleConnectionTicker() {
 	for {
 		connection, err := rd.listener.Accept()
+		defer connection.Close()
 
 		if err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
