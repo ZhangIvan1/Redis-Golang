@@ -6,7 +6,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -56,7 +55,7 @@ func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {
 	newSlave := Slave{toSlave: conn}
 
 	for i := 0; i < len(command.args); i++ {
-		if strings.HasPrefix(command.args[i], "listening-port") {
+		if command.args[i] == "listening-port" {
 			newSlave.port = command.args[i+1]
 		}
 	}
