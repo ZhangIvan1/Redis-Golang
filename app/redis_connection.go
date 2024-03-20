@@ -12,7 +12,7 @@ import (
 
 type Request struct {
 	Lines    []string
-	Commands [][]string
+	Commands []Command
 }
 
 func (rd *Redis) handleConnection(conn net.Conn) {
@@ -34,7 +34,10 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 			}
 
 			for com := 0; com < len(reqs.Commands); com++ {
-				fmt.Println("Now running: " + rd.formatCommand(reqs.Commands[com]))
+				fmt.Println(
+					"Now running:",
+					interface{}(reqs.Commands[com].formatCommand()),
+				)
 				if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
 					fmt.Println("Error runCommand:", err.Error())
 					os.Exit(1)
@@ -65,9 +68,9 @@ func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 	return req, nil
 }
 
-func (rd *Redis) handleResponseLines(reqLine []string, commands *[][]string) error {
+func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) error {
 	if commands == nil {
-		commands = &[][]string{}
+		commands = &[]Command{}
 	}
 
 	for i := 0; i < len(reqLine); {
@@ -85,8 +88,9 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[][]string) err
 					command = append(command, reqLine[j])
 				}
 			}
-			*commands = append(*commands, command)
-			fmt.Println("inserted command:", rd.formatCommand(command))
+			newCommand := Command{command[0], command[1:]}
+			*commands = append(*commands, newCommand)
+			fmt.Println("inserted command:", interface{}(newCommand.formatCommand()))
 			i += 2*n + 1
 		default:
 			i++

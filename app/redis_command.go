@@ -2,28 +2,51 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net"
-	"strconv"
 	"strings"
 )
 
-func (rd *Redis) runCommand(command []string, conn net.Conn) error {
+type Command struct {
+	command string
+	args    []string
+}
+
+func (cm *Command) formatCommand() (int, string) {
+	_, args := cm.formatArgs()
+	res := cm.command + " " + args
+	return len(res), res
+}
+
+func (cm *Command) formatArgs() (int, string) {
+	res := ""
+	for i := 0; i < len(cm.args); i++ {
+		res += cm.args[i]
+		res += " "
+	}
+	return len(res) - 1, res[:len(res)-1]
+}
+
+func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 	switch {
-	case strings.HasPrefix(command[0], "info"):
+	case strings.HasPrefix(command.command, "info"):
 		info := rd.info()
 		if _, err := conn.Write([]byte(info)); err != nil {
 			return err
 		}
-	case strings.HasPrefix(command[0], "ping") || strings.HasPrefix(command[0], "PING"):
-		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
+
+	case strings.HasPrefix(command.command, "ping") || strings.HasPrefix(command.command, "PING"):
+		if err := rd.handlePing(command, conn); err != nil {
 			return err
 		}
-	case strings.HasPrefix(command[0], "echo"):
-		formatString := rd.formatCommand(command[1:])
-		if _, err := conn.Write([]byte("$" + strconv.Itoa(len(formatString)) + "\r\n" + formatString + "\r\n")); err != nil {
+
+	case strings.HasPrefix(command.command, "echo"):
+		length, args := command.formatArgs()
+		if _, err := conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", length, args))); err != nil {
 			return err
 		}
-	case strings.HasPrefix(command[0], "set"):
+
+	case strings.HasPrefix(command.command, "set"):
 		if err := rd.setStore(command); err != nil {
 			return err
 		} else {
@@ -31,20 +54,23 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 				return err
 			}
 		}
-	case strings.HasPrefix(command[0], "get"):
-		if length, value, err := rd.getStore(command[1]); err != nil {
+
+	case strings.HasPrefix(command.command, "get"):
+		if length, value, err := rd.getStore(command); err != nil {
 			return err
 		} else {
-			if _, err := conn.Write([]byte(length + value)); err != nil {
+			if _, err := conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", length, value))); err != nil {
 				return err
 			}
 		}
-	case strings.HasPrefix(command[0], "REPLCONF"):
-		if err := rd.handleReplConf(conn, command); err != nil {
+
+	case strings.HasPrefix(command.command, "REPLCONF"):
+		if err := rd.handleReplConf(command, conn); err != nil {
 			return err
 		}
-	case strings.HasPrefix(command[0], "PSYNC"):
-		if err := rd.handlePSync(conn, command); err != nil {
+
+	case strings.HasPrefix(command.command, "PSYNC"):
+		if err := rd.handlePSync(command, conn); err != nil {
 			return err
 		}
 
@@ -53,16 +79,4 @@ func (rd *Redis) runCommand(command []string, conn net.Conn) error {
 		//return nil
 	}
 	return nil
-}
-
-func (rd *Redis) formatCommand(command []string) string {
-	if len(command) == 0 {
-		return "-------the command is empty!--------"
-	}
-	res := ""
-	for i := 0; i < len(command); i++ {
-		res += command[i]
-		res += " "
-	}
-	return res[:len(res)-1]
 }

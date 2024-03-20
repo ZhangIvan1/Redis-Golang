@@ -49,6 +49,7 @@ type Redis struct {
 	timeExpiration map[string]time.Duration
 
 	role             string
+	replicationSet   []Slave
 	masterReplId     string
 	masterReplOffset int
 	masterHost       string
@@ -105,6 +106,7 @@ func Make(config Config) *Redis {
 		hash := sha1.New()
 		hash.Write([]byte(config.String()))
 		rd.masterReplId = fmt.Sprintf("%x", hash.Sum(nil))
+		rd.replicationSet = make([]Slave, 0)
 
 	} else {
 		rd.role = SLAVE

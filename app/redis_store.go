@@ -9,17 +9,17 @@ import (
 	"time"
 )
 
-func (rd *Redis) setStore(command []string) error {
-	rd.store[command[1]] = command[2]
-	rd.timestamp[command[1]] = time.Now()
+func (rd *Redis) setStore(command Command) error {
+	rd.store[command.args[0]] = command.args[0]
+	rd.timestamp[command.args[0]] = time.Now()
 
-	if len(command) > 3 {
+	if len(command.args) > 2 {
 		switch {
-		case strings.HasPrefix(command[3], "px"):
-			if millisecond, err := strconv.Atoi(command[4]); err != nil {
+		case strings.HasPrefix(command.args[2], "px"):
+			if millisecond, err := strconv.Atoi(command.args[3]); err != nil {
 				return err
 			} else {
-				rd.timeExpiration[command[1]] = time.Duration(millisecond) * time.Millisecond
+				rd.timeExpiration[command.args[0]] = time.Duration(millisecond) * time.Millisecond
 			}
 		}
 	}
@@ -27,21 +27,21 @@ func (rd *Redis) setStore(command []string) error {
 	return nil
 }
 
-func (rd *Redis) getStore(key string) (string, string, error) {
-	if _, exists := rd.store[key]; !exists {
-		return "", "", errors.New("no key \"" + key + "\" found")
+func (rd *Redis) getStore(command Command) (int, string, error) {
+	if _, exists := rd.store[command.args[0]]; !exists {
+		return -2, "", errors.New("no key \"" + command.args[0] + "\" found")
 	}
 
-	if expiryTime, exists := rd.timeExpiration[key]; exists {
-		if time.Since(rd.timestamp[key]) > expiryTime {
-			delete(rd.store, key)
-			delete(rd.timestamp, key)
-			delete(rd.timeExpiration, key)
-			return "$-1\r\n", "", nil
+	if expiryTime, exists := rd.timeExpiration[command.args[0]]; exists {
+		if time.Since(rd.timestamp[command.args[0]]) > expiryTime {
+			delete(rd.store, command.args[0])
+			delete(rd.timestamp, command.args[0])
+			delete(rd.timeExpiration, command.args[0])
+			return -1, "", nil
 		}
 	}
 
-	return "$" + strconv.Itoa(len(rd.store[key])) + "\r\n", rd.store[key] + "\r\n", nil
+	return len(rd.store[command.args[0]]), rd.store[command.args[0]], nil
 }
 
 func (rd *Redis) handleConnectionTicker() {

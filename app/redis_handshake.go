@@ -51,14 +51,14 @@ func (rd *Redis) handshakeTicker() {
 	}
 }
 
-func (rd *Redis) handleReplConf(conn net.Conn, command []string) error {
+func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {
 	if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (rd *Redis) handlePSync(conn net.Conn, command []string) error {
+func (rd *Redis) handlePSync(command Command, conn net.Conn) error {
 	if _, err := conn.Write([]byte("+FULLRESYNC " + rd.masterReplId + " " + strconv.Itoa(rd.masterReplOffset) + "\r\n")); err != nil {
 		return err
 	}
@@ -76,5 +76,12 @@ func (rd *Redis) sendRDB(conn net.Conn) error {
 		}
 	}
 
+	return nil
+}
+
+func (rd *Redis) handlePing(command Command, conn net.Conn) error {
+	if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
+		return err
+	}
 	return nil
 }
