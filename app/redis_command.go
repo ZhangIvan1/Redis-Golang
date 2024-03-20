@@ -59,6 +59,9 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 			if err := rd.doReplication(command); err != nil {
 				return err
 			}
+		} else {
+			conn.Close()
+			return nil
 		}
 
 	case strings.HasPrefix(command.command, "get") || strings.HasPrefix(command.command, "GET"):
