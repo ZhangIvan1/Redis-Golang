@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -20,8 +21,8 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 
 	for {
 		reqs, err := rd.buildRequest(conn)
-		if err != nil && err != io.EOF {
-			if err != io.EOF {
+		if err != nil {
+			if errors.Unwrap(err) != io.EOF {
 				log.Fatalln("Error reading data:", err.Error())
 			} else {
 				conn.Close()
