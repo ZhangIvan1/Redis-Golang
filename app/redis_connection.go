@@ -16,7 +16,7 @@ type Request struct {
 }
 
 func (rd *Redis) handleConnection(conn net.Conn) {
-	defer conn.Close()
+	//defer conn.Close()
 
 	fmt.Println("New connection from: ", conn.RemoteAddr().String())
 
