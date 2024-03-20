@@ -32,5 +32,8 @@ func (cm *Command) buildRequest() string {
 	for arg := 0; arg < len(cm.args); arg++ {
 		res += fmt.Sprintf("$%d\r\n%s\r\n", len(cm.args[arg]), cm.args[arg])
 	}
+
+	fmt.Println("build request:", res)
+
 	return res
 }
