@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"strconv"
 	"strings"
@@ -19,15 +20,15 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 	for {
 		reqs, err := rd.buildRequest(conn)
 		if err != nil {
-			fmt.Println("Error reading data:", err.Error())
-			conn.Close()
-			return
+			log.Fatalln("Error reading data:", err.Error())
+			//conn.Close()
+			//return
 		}
 
 		if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
-			fmt.Println("Error handleResponseLines: ", err.Error())
-			conn.Close()
-			return
+			log.Fatalln("Error handleResponseLines: ", err.Error())
+			//conn.Close()
+			//return
 		}
 
 		for com := 0; com < len(reqs.Commands); com++ {
@@ -37,7 +38,7 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 			)
 			reqs.Commands[com].commandOffset = len(reqs.Commands[com].buildRequest())
 			if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
-				fmt.Println("Error runCommand:", err.Error())
+				log.Fatalln("Error runCommand:", err.Error())
 				//conn.Close()
 				//return
 			}
