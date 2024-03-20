@@ -61,6 +61,10 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 	case strings.HasPrefix(command.command, "get"):
 		if length, value, err := rd.getStore(command); err != nil {
 			return err
+		} else if length == -1 {
+			if _, err := conn.Write([]byte(fmt.Sprintf("$%d\r\n", length))); err != nil {
+				return err
+			}
 		} else {
 			if _, err := conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", length, value))); err != nil {
 				return err
