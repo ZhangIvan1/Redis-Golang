@@ -29,25 +29,26 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 				return
 			}
 		}
-
-		if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
-			log.Fatalln("Error handleResponseLines: ", err.Error())
-			//conn.Close()
-			//return
-		}
-
-		for com := 0; com < len(reqs.Commands); com++ {
-			fmt.Println(
-				"Now running:",
-				interface{}(reqs.Commands[com].formatCommand()),
-			)
-			reqs.Commands[com].commandOffset = len(reqs.Commands[com].buildRequest())
-			if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
-				log.Fatalln("Error runCommand:", err.Error())
+		go func() {
+			if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
+				log.Fatalln("Error handleResponseLines: ", err.Error())
 				//conn.Close()
 				//return
 			}
-		}
+
+			for com := 0; com < len(reqs.Commands); com++ {
+				fmt.Println(
+					"Now running:",
+					interface{}(reqs.Commands[com].formatCommand()),
+				)
+				reqs.Commands[com].commandOffset = len(reqs.Commands[com].buildRequest())
+				if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
+					log.Fatalln("Error runCommand:", err.Error())
+					//conn.Close()
+					//return
+				}
+			}
+		}()
 	}
 }
 
