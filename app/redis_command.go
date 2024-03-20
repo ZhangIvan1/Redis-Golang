@@ -50,9 +50,11 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 			return err
 		}
 		if rd.role == SLAVE {
-			rd.masterConn.Close()
-			rd.masterConn = conn
-			go rd.handleConnection(rd.masterConn)
+			if rd.masterConn != conn {
+				rd.masterConn.Close()
+				rd.masterConn = conn
+				go rd.handleConnection(rd.masterConn)
+			}
 		}
 
 	case command.command == "echo" || command.command == "ECHO":
