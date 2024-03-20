@@ -13,6 +13,9 @@ func (rd *Redis) sendPing(conn net.Conn) {
 		fmt.Println("Error occur during handshaking to master:", err.Error())
 		return
 	}
+
+	rd.masterConn = conn
+	go rd.handleConnection(rd.masterConn)
 	rd.sendReplConf(conn)
 }
 
