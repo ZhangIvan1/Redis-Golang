@@ -111,13 +111,12 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 
 func (rd *Redis) handleConnectionTicker() {
 	for {
-		connection, err := rd.listener.Accept()
-		//defer connection.Close()
-
-		if err != nil {
+		if connection, err := rd.listener.Accept(); err != nil {
 			fmt.Println("Error accepting connection: ", err.Error())
-		}
+			return
+		} else {
+			go rd.handleConnection(connection)
 
-		go rd.handleConnection(connection)
+		}
 	}
 }
