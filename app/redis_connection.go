@@ -78,7 +78,7 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 		switch {
 		case reqLine[i] == "":
 		case strings.HasPrefix(reqLine[i], "*") && len(reqLine[i]) > 1:
-			*commands = append(*commands, Command{commandType: "*"})
+			*commands = append(*commands, Command{commandType: "*", commandOffset: len(reqLine[i]) + 2})
 			if commandLength, err := strconv.Atoi(strings.TrimPrefix(reqLine[i], "*")); err != nil {
 				return err
 			} else {
@@ -86,7 +86,7 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 			}
 		case strings.HasPrefix(reqLine[i], "+"):
 			responseLine := strings.Split(strings.TrimPrefix(reqLine[i], "+"), " ")
-			*commands = append(*commands, Command{commandType: "+", command: responseLine[0], args: responseLine[1:]})
+			*commands = append(*commands, Command{commandType: "+", commandOffset: 0, command: responseLine[0], args: responseLine[1:]})
 		case strings.HasPrefix(reqLine[i], "$"):
 			if _nextPart, err := strconv.Atoi(strings.TrimPrefix(reqLine[i], "$")); err != nil {
 				return err
@@ -100,9 +100,11 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 				if len(reqLine[i]) > nextPart {
 					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:nextPart])
 					reqLine[i] = reqLine[i][nextPart:]
+					(*commands)[len(*commands)-1].commandOffset += len(reqLine[i][:nextPart]) + 2
 					i--
 				} else {
 					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i])
+					(*commands)[len(*commands)-1].commandOffset += len(reqLine[i]) + 2
 					nextPart -= len(reqLine[i])
 				}
 			}

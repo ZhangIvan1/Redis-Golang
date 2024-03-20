@@ -10,6 +10,7 @@ import (
 type Command struct {
 	commandType   string
 	commandLength int
+	commandOffset int
 	command       string
 	args          []string
 }
