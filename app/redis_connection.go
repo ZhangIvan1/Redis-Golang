@@ -74,6 +74,7 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 	nextPart := 0
 
 	for i := 0; i < len(reqLine); i++ {
+		fmt.Println("now:", reqLine[i])
 		switch {
 		case reqLine[i] == "":
 		case strings.HasPrefix(reqLine[i], "*") && len(reqLine[i]) > 1:
