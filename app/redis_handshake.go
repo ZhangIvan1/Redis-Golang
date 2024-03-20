@@ -94,8 +94,10 @@ func (rd *Redis) sendRDB(conn net.Conn) error {
 }
 
 func (rd *Redis) handlePing(command Command, conn net.Conn) error {
-	if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
-		return err
+	if rd.role == MASTER {
+		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
+			return err
+		}
 	}
 	return nil
 }
