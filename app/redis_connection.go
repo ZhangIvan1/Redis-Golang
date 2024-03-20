@@ -37,8 +37,8 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 			)
 			if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
 				fmt.Println("Error runCommand:", err.Error())
-				conn.Close()
-				return
+				//conn.Close()
+
 			}
 		}
 	}
