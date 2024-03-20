@@ -97,7 +97,7 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 			continue
 		default:
 			if (*commands)[len(*commands)-1].command == "" {
-				(*commands)[len(*commands)-1].command = reqLine[i][:nextPart]
+				(*commands)[len(*commands)-1].command = reqLine[i]
 			} else {
 				(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:nextPart])
 			}
