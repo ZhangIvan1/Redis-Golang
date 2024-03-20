@@ -76,7 +76,7 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 	for i := 0; i < len(reqLine); i++ {
 		switch {
 		case reqLine[i] == "":
-		case strings.HasPrefix(reqLine[i], "*"):
+		case strings.HasPrefix(reqLine[i], "*") && len(reqLine[i]) > 1:
 			*commands = append(*commands, Command{commandType: "*"})
 			if commandLength, err := strconv.Atoi(strings.TrimPrefix(reqLine[i], "*")); err != nil {
 				return err
@@ -98,11 +98,9 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 			} else {
 				if len(reqLine[i]) > nextPart {
 					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:nextPart])
-
 				} else {
 					(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i])
-					//nextPart -= len(reqLine[i])
-					//i--
+
 				}
 			}
 		}
