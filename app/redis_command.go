@@ -49,7 +49,7 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 			return err
 		}
 
-	case strings.HasPrefix(command.command, "set"):
+	case strings.HasPrefix(command.command, "set") || strings.HasPrefix(command.command, "SET"):
 		if err := rd.setStore(command); err != nil {
 			return err
 		} else {
@@ -58,7 +58,7 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 			}
 		}
 
-	case strings.HasPrefix(command.command, "get"):
+	case strings.HasPrefix(command.command, "get") || strings.HasPrefix(command.command, "GET"):
 		if length, value, err := rd.getStore(command); err != nil {
 			return err
 		} else if length == -1 {
