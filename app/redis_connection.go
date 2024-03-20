@@ -55,7 +55,7 @@ func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 
 	n, err := conn.Read(readBuffer)
 	if err != nil {
-		fmt.Println("Error reading data: ", err.Error())
+		fmt.Println("Error reading data:", err.Error())
 		conn.Close()
 		return req, err
 	}
@@ -75,6 +75,7 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 	}
 
 	for i := 0; i < len(reqLine); i++ {
+		nextPart := 0
 		switch {
 		case strings.HasPrefix(reqLine[i], "*"):
 			*commands = append(*commands, Command{commandType: "*"})
@@ -88,12 +89,17 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 			*commands = append(*commands, Command{commandType: "+", command: strings.TrimPrefix(reqLine[i], "+")})
 			continue
 		case strings.HasPrefix(reqLine[i], "$"):
+			if _nextPart, err := strconv.Atoi(strings.TrimPrefix(reqLine[i], "$")); err != nil {
+				return err
+			} else {
+				nextPart = _nextPart
+			}
 			continue
 		default:
 			if (*commands)[len(*commands)-1].command == "" {
-				(*commands)[len(*commands)-1].command = reqLine[i]
+				(*commands)[len(*commands)-1].command = reqLine[i][:nextPart]
 			} else {
-				(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i])
+				(*commands)[len(*commands)-1].args = append((*commands)[len(*commands)-1].args, reqLine[i][:nextPart])
 			}
 		}
 	}
