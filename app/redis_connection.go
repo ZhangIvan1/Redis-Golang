@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -19,7 +20,7 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 
 	for {
 		reqs, err := rd.buildRequest(conn)
-		if err != nil {
+		if err != nil && err != io.EOF {
 			log.Fatalln("Error reading data:", err.Error())
 			conn.Close()
 			return
