@@ -12,19 +12,18 @@ type Command struct {
 	args    []string
 }
 
-func (cm *Command) formatCommand() (int, string) {
-	_, args := cm.formatArgs()
-	res := cm.command + " " + args
-	return len(res), res
+func (cm *Command) formatCommand() string {
+	res := cm.command + " " + cm.formatArgs()
+	return res
 }
 
-func (cm *Command) formatArgs() (int, string) {
+func (cm *Command) formatArgs() string {
 	res := ""
 	for i := 0; i < len(cm.args); i++ {
 		res += cm.args[i]
 		res += " "
 	}
-	return len(res) - 1, res[:len(res)-1]
+	return res[:len(res)-1]
 }
 
 func (rd *Redis) runCommand(command Command, conn net.Conn) error {
@@ -41,8 +40,8 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 		}
 
 	case strings.HasPrefix(command.command, "echo"):
-		length, args := command.formatArgs()
-		if _, err := conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", length, args))); err != nil {
+		args := command.formatArgs()
+		if _, err := conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(args), args))); err != nil {
 			return err
 		}
 
