@@ -66,6 +66,9 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 			if err := rd.doReplication(command); err != nil {
 				return err
 			}
+		} else {
+			rd.masterReplOffset += len(command.formatCommand())
+			return nil
 		}
 
 	case command.command == "get" || command.command == "GET":

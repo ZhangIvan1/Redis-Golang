@@ -62,7 +62,11 @@ func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {
 	} else {
 		for i := 0; i < len(command.args); i++ {
 			if command.args[i] == "GETACK" {
-				if _, err := conn.Write([]byte("*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$1\r\n0\r\n")); err != nil {
+				if _, err := conn.Write([]byte(fmt.Sprintf(
+					"*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$%d\r\n%d\r\n",
+					len(strconv.Itoa(rd.masterReplOffset)),
+					rd.masterReplOffset,
+				))); err != nil {
 					return err
 				}
 			}
