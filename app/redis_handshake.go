@@ -106,7 +106,7 @@ func (rd *Redis) handlePing(command Command, conn net.Conn) error {
 			return err
 		}
 	} else if rd.role == SLAVE {
-		rd.masterReplOffset += len(command.formatCommand())
+		rd.masterReplOffset += command.commandOffset
 		if rd.masterConn != conn {
 			rd.masterConn.Close()
 			rd.masterConn = conn
