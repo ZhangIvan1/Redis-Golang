@@ -108,7 +108,6 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 			}
 		}
 	}
-
 	return nil
 }
 
