@@ -21,9 +21,12 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 	for {
 		reqs, err := rd.buildRequest(conn)
 		if err != nil && err != io.EOF {
-			log.Fatalln("Error reading data:", err.Error())
-			conn.Close()
-			return
+			if err != io.EOF {
+				log.Fatalln("Error reading data:", err.Error())
+			} else {
+				conn.Close()
+				return
+			}
 		}
 
 		if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
