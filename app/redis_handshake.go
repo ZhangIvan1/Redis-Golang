@@ -65,7 +65,7 @@ func (rd *Redis) handlePSync(conn net.Conn, command []string) error {
 }
 
 func (rd *Redis) sendRDB(conn net.Conn) error {
-	contents := "524544495330303131fa0972656469732d76657205372e322e30fa0a72656469732d62697473c040fa056374696d65c26d08bc65fa08757365642d6d656dc2b0c41000fa08616f662d62617365c000fff06e3bfec0ff5aa2"
+	contents := "UkVESVMwMDEx+glyZWRpcy12ZXIFNy4yLjD6CnJlZGlzLWJpdHPAQPoFY3RpbWXCbQi8ZfoIdXNlZC1tZW3CsMQQAPoIYW9mLWJhc2XAAP/wbjv+wP9aog=="
 	if _, err := conn.Write([]byte("$" + strconv.Itoa(len(contents)) + "\r\n" + contents)); err != nil {
 		return err
 	}
