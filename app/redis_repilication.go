@@ -11,12 +11,6 @@ type Slave struct {
 	toSlave net.Conn
 }
 
-type Master struct {
-	host    string
-	port    string
-	toSlave net.Conn
-}
-
 func (rd *Redis) doReplication(command Command) error {
 	fmt.Printf("i have %d to send\n", len(rd.replicationSet))
 	for slave := 0; slave < len(rd.replicationSet); slave++ {
