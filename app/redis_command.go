@@ -81,7 +81,7 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 			}
 		}
 
-	case command.command == "REPLCONF":
+	case command.command == "REPLCONF" || command.command == "replconf":
 		if err := rd.handleReplConf(command, conn); err != nil {
 			return err
 		}

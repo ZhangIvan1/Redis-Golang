@@ -52,17 +52,28 @@ func (rd *Redis) handshakeTicker() {
 }
 
 func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {
-	for i := 0; i < len(command.args); i++ {
-		newSlave := Slave{toSlave: conn}
-		if command.args[i] == "listening-port" {
-			newSlave.port = command.args[i+1]
-			rd.replicationSet = append(rd.replicationSet, newSlave)
+	if rd.role == MASTER {
+		for i := 0; i < len(command.args); i++ {
+			newSlave := Slave{toSlave: conn}
+			if command.args[i] == "listening-port" {
+				newSlave.port = command.args[i+1]
+				rd.replicationSet = append(rd.replicationSet, newSlave)
+			}
+		}
+
+		if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
+			return err
+		}
+	} else {
+		for i := 0; i < len(command.args); i++ {
+			if command.args[i] == "GETACK" {
+				if _, err := conn.Write([]byte("*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$1\r\n0\r\n")); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
-	if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
-		return err
-	}
 	return nil
 }
 
