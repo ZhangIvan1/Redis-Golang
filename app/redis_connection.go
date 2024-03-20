@@ -21,7 +21,6 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 	fmt.Println("New connection from:", conn.RemoteAddr().String())
 
 	for {
-		fmt.Println("buildRequest")
 		reqs, err := rd.buildRequest(conn)
 		if err != nil {
 			fmt.Println("Error reading data:", err.Error())
