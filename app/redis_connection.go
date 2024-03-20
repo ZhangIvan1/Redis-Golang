@@ -29,19 +29,18 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 			conn.Close()
 			return
 		}
-		go func() {
-			for com := 0; com < len(reqs.Commands); com++ {
-				fmt.Println(
-					"Now running:",
-					interface{}(reqs.Commands[com].formatCommand()),
-				)
-				if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
-					fmt.Println("Error runCommand:", err.Error())
-					conn.Close()
-					return
-				}
+
+		for com := 0; com < len(reqs.Commands); com++ {
+			fmt.Println(
+				"Now running:",
+				interface{}(reqs.Commands[com].formatCommand()),
+			)
+			if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
+				fmt.Println("Error runCommand:", err.Error())
+				conn.Close()
+				return
 			}
-		}()
+		}
 	}
 }
 
