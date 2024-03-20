@@ -1,9 +1,7 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"strconv"
@@ -22,12 +20,9 @@ func (rd *Redis) handleConnection(conn net.Conn) {
 	for {
 		reqs, err := rd.buildRequest(conn)
 		if err != nil {
-			if errors.Unwrap(err) != io.EOF {
-				log.Fatalln("Error reading data:", err.Error())
-			} else {
-				conn.Close()
-				return
-			}
+			println("Error reading data:", err.Error())
+			conn.Close()
+			return
 		}
 		go func() {
 			if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
