@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"strings"
+	"strconv"
 )
 
 type Command struct {
@@ -45,18 +45,18 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 			return err
 		}
 
-	case strings.HasPrefix(command.command, "ping") || strings.HasPrefix(command.command, "PING"):
+	case command.command == "ping" || command.command == "PING":
 		if err := rd.handlePing(command, conn); err != nil {
 			return err
 		}
 
-	case strings.HasPrefix(command.command, "echo") || strings.HasPrefix(command.command, "ECHO"):
+	case command.command == "echo" || command.command == "ECHO":
 		args := command.formatArgs()
 		if _, err := conn.Write([]byte(fmt.Sprintf("$%d\r\n%s\r\n", len(args), args))); err != nil {
 			return err
 		}
 
-	case strings.HasPrefix(command.command, "set") || strings.HasPrefix(command.command, "SET"):
+	case command.command == "set" || command.command == "SET":
 		if err := rd.setStore(command); err != nil {
 			return err
 		} else if rd.role == MASTER {
@@ -68,7 +68,7 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 			}
 		}
 
-	case strings.HasPrefix(command.command, "get") || strings.HasPrefix(command.command, "GET"):
+	case command.command == "get" || command.command == "GET":
 		if length, value, err := rd.getStore(command); err != nil {
 			return err
 		} else if length == -1 {
@@ -81,18 +81,18 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 			}
 		}
 
-	case strings.HasPrefix(command.command, "REPLCONF"):
+	case command.command == "REPLCONF":
 		if err := rd.handleReplConf(command, conn); err != nil {
 			return err
 		}
 
-	case strings.HasPrefix(command.command, "PSYNC"):
+	case command.command == "PSYNC":
 		if err := rd.handlePSync(command, conn); err != nil {
 			return err
 		}
 
 	default:
-		return errors.New("no matching command")
+		return errors.New(fmt.Sprintf("no matching command: %s", command.formatCommand()))
 		//return nil
 	}
 	return nil
@@ -100,7 +100,17 @@ func (rd *Redis) runCommand(command Command, conn net.Conn) error {
 
 func (rd *Redis) handleRepose(command Command, conn net.Conn) error {
 	switch {
-
+	case command.command == "PONG":
+	case command.command == "FULLRESYNC":
+		rd.masterReplId = command.args[0]
+		if offset, err := strconv.Atoi(command.args[1]); err != nil {
+			// 处理错误，例如打印错误并退出
+			return err
+		} else {
+			rd.masterReplOffset = offset
+		}
+	default:
+		return errors.New(fmt.Sprintf("no matching respose: %s", command.formatCommand()))
 	}
 	return nil
 }
