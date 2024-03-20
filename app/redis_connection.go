@@ -56,7 +56,7 @@ func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 	n, err := conn.Read(readBuffer)
 	if err != nil {
 		fmt.Println("Error reading data: ", err.Error())
-		os.Exit(1)
+		//os.Exit(1)
 	}
 
 	req.Lines = strings.Split(string(readBuffer[:n]), "\r\n")
