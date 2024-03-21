@@ -24,6 +24,8 @@ func (p *ConnectionPool) put(conn net.Conn) error {
 		return fmt.Errorf("connection pool is full")
 	}
 
+	log.Println("add new conn")
+
 	p.conns = append(p.conns, conn)
 	return nil
 }
