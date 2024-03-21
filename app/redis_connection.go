@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 type ConnectionPool struct {
@@ -61,25 +60,20 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 		rd.connectionPool.mu.Unlock()
 
 		if conn == nil {
-			time.Sleep(time.Millisecond * 20)
 			continue
 		}
 
 		data, err := rd.readData(conn)
 		if err != nil {
 			log.Println(err.Error())
-			rd.connectionPool.mu.Lock()
-			rd.connectionPool.conns = append(rd.connectionPool.conns, conn)
-			rd.connectionPool.mu.Unlock()
+			rd.connectionPool.put(conn)
 			continue
 		}
 
 		reqs, err := rd.buildRequest(data)
 		if err != nil {
 			log.Println(err.Error())
-			rd.connectionPool.mu.Lock()
-			rd.connectionPool.conns = append(rd.connectionPool.conns, conn)
-			rd.connectionPool.mu.Unlock()
+			rd.connectionPool.put(conn)
 			return
 		}
 		if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
