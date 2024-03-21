@@ -73,7 +73,6 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 		data, err := rd.readData(conn)
 		if err != nil || data == nil {
 			log.Println(err.Error())
-			rd.connectionPool.putConn(conn)
 			continue
 		}
 
