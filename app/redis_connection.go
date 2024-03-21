@@ -70,13 +70,13 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 			continue
 		}
 
+		log.Println("now handling conn:", conn.RemoteAddr())
+
 		data, err := rd.readData(conn)
 		if err != nil || data == nil {
 			log.Println(err.Error())
 			continue
 		}
-
-		log.Println("now handling conn:", conn.RemoteAddr())
 
 		go func() {
 			reqs, err := rd.buildRequest(data)
