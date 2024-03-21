@@ -121,7 +121,7 @@ func Make(config Config) *Redis {
 	rd.store = make(map[string]string)
 	rd.timestamp = make(map[string]time.Time)
 	rd.timeExpiration = make(map[string]time.Duration)
-	rd.connectionPool = ConnectionPool{capacity: config.poolSize}
+	rd.connectionPool = ConnectionPool{conns: make([]net.Conn, 0), capacity: config.poolSize}
 
 	if config.masterHost == "" {
 		rd.role = MASTER
