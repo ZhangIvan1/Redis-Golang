@@ -20,6 +20,14 @@ type ConnectionPool struct {
 func (p *ConnectionPool) getConnLock() net.Conn {
 	conn := p.conns[0]
 	p.conns = p.conns[1:]
+
+	if _, err := conn.Read([]byte{}); err != nil {
+		if err == io.EOF {
+			log.Println("connection closed")
+		}
+		log.Println("error checking connection status: %v", err)
+		return net.Conn(nil)
+	}
 	return conn
 }
 
@@ -100,7 +108,6 @@ func (rd *Redis) readData(conn net.Conn) ([]byte, error) {
 	readBuffer := make([]byte, 4096)
 
 	n, err := conn.Read(readBuffer)
-	log.Println("read completed")
 	if err != nil {
 		if err == io.EOF {
 			log.Println("Connection", conn.RemoteAddr(), "closed.")
