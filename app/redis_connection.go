@@ -21,13 +21,6 @@ func (p *ConnectionPool) getConnLock() net.Conn {
 	conn := p.conns[0]
 	p.conns = p.conns[1:]
 
-	if _, err := conn.Read([]byte{}); err != nil {
-		if err == io.EOF {
-			log.Println("connection closed")
-		}
-		log.Println("error checking connection status: %v", err)
-		return net.Conn(nil)
-	}
 	return conn
 }
 
@@ -107,14 +100,20 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 func (rd *Redis) readData(conn net.Conn) ([]byte, error) {
 	readBuffer := make([]byte, 4096)
 
+	if err := conn.SetReadDeadline(time.Now().Add(1 * time.Second)); err != nil {
+		return nil, fmt.Errorf("error setting read deadline: %v", err)
+	}
+
 	n, err := conn.Read(readBuffer)
 	if err != nil {
+		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			return nil, fmt.Errorf("read timeout: %v", err)
+		}
 		if err == io.EOF {
 			log.Println("Connection", conn.RemoteAddr(), "closed.")
 			return nil, err
-		} else {
-			log.Println("Error reading data from connection", conn.RemoteAddr(), ":", err)
 		}
+		log.Println("Error reading data from connection", conn.RemoteAddr(), ":", err)
 		return nil, err
 	}
 
