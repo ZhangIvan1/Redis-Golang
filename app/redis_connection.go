@@ -16,6 +16,12 @@ type ConnectionPool struct {
 	capacity int
 }
 
+func (p *ConnectionPool) getLock() net.Conn {
+	conn := p.conns[0]
+	p.conns = p.conns[1:]
+	return conn
+}
+
 func (p *ConnectionPool) put(conn net.Conn) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -54,8 +60,7 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 		rd.connectionPool.mu.Lock()
 		log.Printf("now i have %d conns in the pool\n", len(rd.connectionPool.conns))
 		if len(rd.connectionPool.conns) > 0 {
-			conn = rd.connectionPool.conns[0]
-			rd.connectionPool.conns = rd.connectionPool.conns[1:]
+			conn = rd.connectionPool.getLock()
 		}
 		rd.connectionPool.mu.Unlock()
 
