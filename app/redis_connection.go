@@ -31,7 +31,7 @@ func (p *ConnectionPool) putConn(conn net.Conn) error {
 		return fmt.Errorf("connection pool is full")
 	}
 
-	log.Println("add new conn")
+	log.Println("add new conn", conn.RemoteAddr())
 
 	p.conns = append(p.conns, conn)
 	return nil
