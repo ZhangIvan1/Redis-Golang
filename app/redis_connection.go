@@ -53,6 +53,7 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 	for {
 		conn := net.Conn(nil)
 		rd.connectionPool.mu.Lock()
+		log.Printf("now i have %d conns in the pool\n", len(rd.connectionPool.conns))
 		if len(rd.connectionPool.conns) > 0 {
 			conn = rd.connectionPool.conns[0]
 			rd.connectionPool.conns = rd.connectionPool.conns[1:]
