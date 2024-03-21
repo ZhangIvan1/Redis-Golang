@@ -85,7 +85,10 @@ func (rd *Redis) commandClassifyTicker(commandChan chan Pair[Command, net.Conn])
 				log.Printf("no matching command: %s", command.formatCommand())
 			}
 
-			rd.connectionPool.putConn(conn)
+			err := rd.connectionPool.putConn(conn)
+			if err != nil {
+				log.Printf(err.Error())
+			}
 		}
 	}
 }
