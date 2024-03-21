@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 type ConnectionPool struct {
@@ -59,6 +60,7 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 		rd.connectionPool.mu.Unlock()
 
 		if conn == nil {
+			time.Sleep(time.Millisecond * 20)
 			continue
 		}
 
