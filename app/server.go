@@ -26,6 +26,8 @@ const (
 
 	DEFAULT_MASTER_HOST string = ""
 	DEFAULT_MASTER_PORT string = ""
+
+	DEFAULT_POOL_SIZE int = 30
 )
 
 type Config struct {
@@ -35,6 +37,8 @@ type Config struct {
 
 	masterHost string
 	masterPort string
+
+	poolSize int
 }
 
 func (config Config) String() string {
@@ -84,6 +88,7 @@ func main() {
 		port:       DEFAULT_PORT,
 		masterHost: DEFAULT_MASTER_HOST,
 		masterPort: DEFAULT_MASTER_PORT,
+		poolSize:   DEFAULT_POOL_SIZE,
 	}
 	for i, arg := range args {
 		if arg == "--port" {
@@ -116,6 +121,7 @@ func Make(config Config) *Redis {
 	rd.store = make(map[string]string)
 	rd.timestamp = make(map[string]time.Time)
 	rd.timeExpiration = make(map[string]time.Duration)
+	rd.connectionPool = ConnectionPool{capacity: config.poolSize}
 
 	if config.masterHost == "" {
 		rd.role = MASTER
