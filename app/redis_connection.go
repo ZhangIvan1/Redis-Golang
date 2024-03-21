@@ -1,8 +1,8 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"io"
 	"log"
 	"net"
 	"strconv"
@@ -72,11 +72,18 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 		log.Println("now handling conn:", conn.RemoteAddr())
 
 		data, err := rd.readData(conn)
-		if err != nil || data == nil {
-			log.Println(err.Error())
-			conn.Close()
-			rd.connectionPool.removeConn(conn)
-			continue
+		if err != nil {
+			var netErr net.Error
+			if errors.As(err, &netErr) && netErr.Timeout() {
+				log.Println("read timeout:", err)
+				rd.connectionPool.putConn(conn)
+				continue
+			} else {
+				log.Println("Connection", conn.RemoteAddr(), "closed.")
+				conn.Close()
+				rd.connectionPool.removeConn(conn)
+				continue
+			}
 		} else {
 			go func() {
 				reqs, err := rd.buildRequest(data)
@@ -100,20 +107,12 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 func (rd *Redis) readData(conn net.Conn) ([]byte, error) {
 	readBuffer := make([]byte, 4096)
 
-	if err := conn.SetReadDeadline(time.Now().Add(1 * time.Second)); err != nil {
+	if err := conn.SetReadDeadline(time.Now().Add(10 * time.Millisecond)); err != nil {
 		return nil, fmt.Errorf("error setting read deadline: %v", err)
 	}
 
 	n, err := conn.Read(readBuffer)
 	if err != nil {
-		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-			return nil, fmt.Errorf("read timeout: %v", err)
-		}
-		if err == io.EOF {
-			log.Println("Connection", conn.RemoteAddr(), "closed.")
-			return nil, err
-		}
-		log.Println("Error reading data from connection", conn.RemoteAddr(), ":", err)
 		return nil, err
 	}
 
