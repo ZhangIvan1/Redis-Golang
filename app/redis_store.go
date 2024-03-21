@@ -53,13 +53,8 @@ func (rd *Redis) writeTicker(writeChan chan Pair[Command, net.Conn]) {
 			writeCommand, conn := writeOption()
 			if err := rd.setKey(writeCommand); err != nil {
 				log.Println(err.Error())
-			} else {
-				sendItem := func(response string, conn net.Conn) func() (string, net.Conn) {
-					return func() (string, net.Conn) {
-						return response, conn
-					}
-				}
-				rd.sendChan <- sendItem("+OK\r\n", conn)
+			} else if rd.role == MASTER {
+				rd.sendChan <- NewPair("+OK\r\n", conn)
 			}
 		}
 	}
