@@ -123,6 +123,11 @@ func Make(config Config) *Redis {
 	rd.timeExpiration = make(map[string]time.Duration)
 	rd.connectionPool = ConnectionPool{conns: make([]net.Conn, 0), capacity: config.poolSize}
 
+	rd.commandChan = make(chan Pair[Command, net.Conn])
+	rd.writeChan = make(chan Pair[Command, net.Conn])
+	rd.readChan = make(chan Pair[Command, net.Conn])
+	rd.sendChan = make(chan Pair[string, net.Conn])
+
 	if config.masterHost == "" {
 		rd.role = MASTER
 		hash := sha1.New()
