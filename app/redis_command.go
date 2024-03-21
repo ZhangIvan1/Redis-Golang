@@ -81,6 +81,9 @@ func (rd *Redis) commandClassifyTicker(commandChan chan Pair[Command, net.Conn])
 					log.Println(err.Error())
 				}
 
+			case command.command == "WAIT":
+				rd.handleWait(command, conn)
+
 			default:
 				log.Printf("no matching command: %s", command.formatCommand())
 			}
