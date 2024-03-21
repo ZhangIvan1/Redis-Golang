@@ -58,16 +58,17 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 			} else if len(reqs.Lines) == 0 {
 				continue
 			}
-			conn := conn
-			go func() {
-				if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
-					log.Println("Error handleResponseLines: ", err.Error())
-				}
-				for _, command := range reqs.Commands {
-					command.commandOffset = len(command.buildRequest())
-					commandChan <- NewPair(command, conn)
-				}
-			}()
+			//conn := conn
+			//reqs := reqs
+			//go func() {
+			if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
+				log.Println("Error handleResponseLines: ", err.Error())
+			}
+			for _, command := range reqs.Commands {
+				command.commandOffset = len(command.buildRequest())
+				commandChan <- NewPair(command, conn)
+			}
+			//}()
 		}
 	}
 }
