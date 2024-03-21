@@ -55,6 +55,8 @@ func (rd *Redis) writeTicker(writeChan chan Pair[Command, net.Conn]) {
 				log.Println(err.Error())
 			} else if rd.role == MASTER {
 				rd.sendChan <- NewPair("+OK\r\n", conn)
+			} else {
+				rd.masterReplOffset += writeCommand.commandOffset
 			}
 		}
 	}
