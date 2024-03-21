@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -75,21 +76,25 @@ func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 
 	n, err := conn.Read(readBuffer)
 	if err != nil {
-		fmt.Println("Error reading data:", err.Error())
-		//conn.Close()
-		return req, err
+		if err == io.EOF {
+			log.Println("Connection", conn.RemoteAddr(), "closed.")
+			rd.connectionPool.remove(conn)
+		} else {
+			log.Println("Error reading data from connection", conn.RemoteAddr(), ":", err)
+		}
+	} else {
+		log.Println("Connection", conn.RemoteAddr(), "has pending data.")
 	}
 
 	req.Lines = strings.Split(string(readBuffer[:n]), "\r\n")
-	fmt.Println(req.Lines)
+	log.Println(req.Lines)
 
 	for line := 0; line < len(req.Lines); line++ {
 		fmt.Println(req.Lines[line])
 	}
 
-	if len(req.Lines) > 0 {
-		req.Lines = req.Lines[:len(req.Lines)-1]
-	}
+	req.Lines = req.Lines[:len(req.Lines)-1]
+
 	return req, nil
 }
 
