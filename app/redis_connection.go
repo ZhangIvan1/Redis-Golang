@@ -18,9 +18,6 @@ type ConnectionPool struct {
 }
 
 func (p *ConnectionPool) put(conn net.Conn) error {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
 	if len(p.conns) >= p.capacity {
 		return fmt.Errorf("connection pool is full")
 	}
@@ -88,7 +85,6 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 			command.commandOffset = len(command.buildRequest())
 			commandChan <- NewPair(command, conn)
 		}
-
 	}
 }
 
@@ -184,10 +180,12 @@ func (rd *Redis) listenConnectionTicker() {
 			return
 		} else {
 			log.Println("New connection from:", connection.RemoteAddr().String())
+			rd.connectionPool.mu.Lock()
 			if err := rd.connectionPool.put(connection); err != nil {
 				fmt.Println("Error accepting connection:", err.Error())
 				return
 			}
+			rd.connectionPool.mu.Unlock()
 		}
 	}
 }
