@@ -60,14 +60,9 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 				if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
 					log.Println("Error handleResponseLines: ", err.Error())
 				}
-				for com := 0; com < len(reqs.Commands); com++ {
-					reqs.Commands[com].commandOffset = len(reqs.Commands[com].buildRequest())
-					commandItem := func(command Command, conn net.Conn) func() (Command, net.Conn) {
-						return func() (Command, net.Conn) {
-							return command, conn
-						}
-					}
-					commandChan <- commandItem(reqs.Commands[com], conn)
+				for _, command := range reqs.Commands {
+					command.commandOffset = len(command.buildRequest())
+					commandChan <- NewPair(command, conn)
 				}
 			}()
 		}
