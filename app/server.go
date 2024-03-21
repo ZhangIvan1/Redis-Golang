@@ -149,11 +149,11 @@ func Make(config Config) *Redis {
 	go rd.readTicker(rd.readChan)
 	go rd.commandClassifyTicker(rd.commandChan)
 	go rd.handleConnectionTicker(rd.commandChan)
+	go rd.listenConnectionTicker()
 
 	if rd.role == SLAVE {
 		go rd.handshakeTicker()
 	}
-	go rd.listenConnectionTicker()
 
 	return rd
 }
