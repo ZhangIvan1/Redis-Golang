@@ -43,6 +43,7 @@ func (rd *Redis) commandClassifyTicker(commandChan chan Pair[Command, net.Conn])
 		for commandItem := range commandChan {
 			command, conn := commandItem()
 			log.Println("get command:", command.formatCommand())
+
 			switch {
 			case command.commandType == "+":
 				if err := rd.handleRepose(command, conn); err != nil {
