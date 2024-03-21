@@ -104,7 +104,7 @@ func (rd *Redis) handlePing(command Command, conn net.Conn) error {
 
 func (rd *Redis) handleWait(command Command, conn net.Conn) {
 	if rd.role == MASTER {
-		//rd.sendChan <- NewPair("*1\r\n$1\r\n0\r\n", conn)
-		rd.sendChan <- NewPair("0", conn)
+		rd.sendChan <- NewPair("*1\r\n$1\r\n0\r\n", conn)
+		//rd.sendChan <- NewPair("0", conn)
 	}
 }
