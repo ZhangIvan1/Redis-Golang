@@ -11,6 +11,9 @@ import (
 )
 
 func (rd *Redis) setKey(command Command) error {
+	rd.mu.Lock()
+	defer rd.mu.Unlock()
+
 	rd.store[command.args[0]] = command.args[1]
 	rd.timestamp[command.args[0]] = time.Now()
 
