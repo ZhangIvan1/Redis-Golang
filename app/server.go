@@ -151,7 +151,6 @@ func Make(config Config) *Redis {
 	if rd.role == SLAVE {
 		go rd.handshakeTicker()
 	}
-	go rd.commandClassifyTicker(rd.commandChan)
 	go rd.writeTicker(rd.writeChan)
 	go rd.readTicker(rd.readChan)
 
