@@ -92,7 +92,9 @@ func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 		fmt.Println(req.Lines[line])
 	}
 
-	req.Lines = req.Lines[:len(req.Lines)-1]
+	if len(req.Lines) > 0 {
+		req.Lines = req.Lines[:len(req.Lines)-1]
+	}
 	return req, nil
 }
 
