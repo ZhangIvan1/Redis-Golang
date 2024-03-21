@@ -89,10 +89,6 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 				command.commandOffset = len(command.buildRequest())
 				commandChan <- NewPair(command, conn)
 			}
-
-			rd.connectionPool.mu.Lock()
-			rd.connectionPool.conns = append(rd.connectionPool.conns, conn)
-			rd.connectionPool.mu.Unlock()
 		}()
 	}
 }
