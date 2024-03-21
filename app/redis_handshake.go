@@ -20,7 +20,7 @@ func (rd *Redis) sendPing(conn net.Conn) {
 }
 
 func (rd *Redis) sendReplConf(conn net.Conn) {
-	rd.sendChan <- NewPair(fmt.Sprintf("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n%d\r\n", rd.config.port), conn)
+	rd.sendChan <- NewPair(fmt.Sprintf("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n%s\r\n", rd.config.port), conn)
 	rd.sendChan <- NewPair("*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n", conn)
 
 	rd.sendPSync(conn)
