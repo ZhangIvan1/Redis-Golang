@@ -12,7 +12,7 @@ import (
 func (rd *Redis) sendPing(conn net.Conn) {
 	rd.sendChan <- NewPair("*1\r\n$4\r\nping\r\n", conn)
 
-	if err := rd.connectionPool.put(conn); err != nil {
+	if err := rd.connectionPool.putConn(conn); err != nil {
 		log.Println("Error occur during insert to connectionPool:", err.Error())
 		return
 	}
@@ -93,9 +93,9 @@ func (rd *Redis) handlePing(command Command, conn net.Conn) error {
 		rd.masterReplOffset += command.commandOffset
 		if rd.masterConn != conn {
 			rd.masterConn.Close()
-			rd.connectionPool.remove(rd.masterConn)
+			rd.connectionPool.removeConn(rd.masterConn)
 			rd.masterConn = conn
-			rd.connectionPool.put(rd.masterConn)
+			rd.connectionPool.putConn(rd.masterConn)
 		}
 	}
 	return nil

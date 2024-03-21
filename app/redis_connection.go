@@ -17,13 +17,13 @@ type ConnectionPool struct {
 	capacity int
 }
 
-func (p *ConnectionPool) getLock() net.Conn {
+func (p *ConnectionPool) getConnLock() net.Conn {
 	conn := p.conns[0]
 	p.conns = p.conns[1:]
 	return conn
 }
 
-func (p *ConnectionPool) put(conn net.Conn) error {
+func (p *ConnectionPool) putConn(conn net.Conn) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -37,7 +37,7 @@ func (p *ConnectionPool) put(conn net.Conn) error {
 	return nil
 }
 
-func (p *ConnectionPool) remove(conn net.Conn) {
+func (p *ConnectionPool) removeConn(conn net.Conn) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -58,10 +58,10 @@ type Request struct {
 func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]) {
 	for {
 		conn := net.Conn(nil)
+
 		rd.connectionPool.mu.Lock()
-		log.Printf("now i have %d conns in the pool\n", len(rd.connectionPool.conns))
 		if len(rd.connectionPool.conns) > 0 {
-			conn = rd.connectionPool.getLock()
+			conn = rd.connectionPool.getConnLock()
 		}
 		rd.connectionPool.mu.Unlock()
 
@@ -73,7 +73,7 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 		data, err := rd.readData(conn)
 		if err != nil {
 			log.Println(err.Error())
-			rd.connectionPool.put(conn)
+			rd.connectionPool.putConn(conn)
 			continue
 		}
 
@@ -81,7 +81,7 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 			reqs, err := rd.buildRequest(data)
 			if err != nil {
 				log.Println(err.Error())
-				rd.connectionPool.put(conn)
+				rd.connectionPool.putConn(conn)
 				return
 			}
 			if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
@@ -103,7 +103,8 @@ func (rd *Redis) readData(conn net.Conn) ([]byte, error) {
 	if err != nil {
 		if err == io.EOF {
 			log.Println("Connection", conn.RemoteAddr(), "closed.")
-			rd.connectionPool.remove(conn)
+			conn.Close()
+			return nil, err
 		} else {
 			log.Println("Error reading data from connection", conn.RemoteAddr(), ":", err)
 		}
@@ -188,7 +189,7 @@ func (rd *Redis) listenConnectionTicker() {
 			return
 		} else {
 			log.Println("New connection from:", connection.RemoteAddr().String())
-			if err := rd.connectionPool.put(connection); err != nil {
+			if err := rd.connectionPool.putConn(connection); err != nil {
 				fmt.Println("Error accepting connection:", err.Error())
 				return
 			}
