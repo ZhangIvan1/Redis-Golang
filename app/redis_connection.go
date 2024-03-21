@@ -84,22 +84,21 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 				rd.connectionPool.removeConn(conn)
 				continue
 			}
-		} else {
-			go func() {
-				reqs, err := rd.buildRequest(data)
-				if err != nil {
-					log.Println(err.Error())
-					rd.connectionPool.putConn(conn)
-					return
-				}
-				if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
-					log.Println("Error handleResponseLines: ", err.Error())
-				}
-				for _, command := range reqs.Commands {
-					command.commandOffset = len(command.buildRequest())
-					commandChan <- NewPair(command, conn)
-				}
-			}()
+		}
+
+		reqs, err := rd.buildRequest(data)
+		if err != nil {
+			log.Println(err.Error())
+			rd.connectionPool.putConn(conn)
+			continue
+		}
+
+		if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
+			log.Println("Error handleResponseLines: ", err.Error())
+		}
+		for _, command := range reqs.Commands {
+			command.commandOffset = len(command.buildRequest())
+			commandChan <- NewPair(command, conn)
 		}
 	}
 }
