@@ -107,15 +107,24 @@ func main() {
 
 	rd := Make(config)
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	var wg sync.WaitGroup
 
-	<-c
-	fmt.Println("Shutting down the server...")
+	wg.Add(1)
 
-	if err := rd.listener.Close(); err != nil {
-		fmt.Println("Error closing redis server:", err)
-	}
+	go func() {
+		defer wg.Done()
+		// 等待终止信号
+		c := make(chan os.Signal, 1)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		<-c
+		fmt.Println("Shutting down the server...")
+		// 关闭服务器
+		if err := rd.listener.Close(); err != nil {
+			fmt.Println("Error closing redis server:", err)
+		}
+	}()
+
+	wg.Wait()
 }
 
 func Make(config Config) *Redis {
