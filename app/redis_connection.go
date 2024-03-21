@@ -55,6 +55,8 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 				conn.Close()
 				rd.connectionPool.remove(conn)
 				continue
+			} else if len(reqs.Lines) == 0 {
+				continue
 			}
 			conn := conn
 			go func() {
@@ -71,7 +73,6 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 }
 
 func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
-
 	readBuffer := make([]byte, 4096)
 
 	n, err := conn.Read(readBuffer)
@@ -82,8 +83,12 @@ func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 		} else {
 			log.Println("Error reading data from connection", conn.RemoteAddr(), ":", err)
 		}
-	} else {
-		log.Println("Connection", conn.RemoteAddr(), "has pending data.")
+		return req, err
+	}
+
+	if n == 0 {
+		log.Println("No data read from connection", conn.RemoteAddr())
+		return req, nil
 	}
 
 	req.Lines = strings.Split(string(readBuffer[:n]), "\r\n")
