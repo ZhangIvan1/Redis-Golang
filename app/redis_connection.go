@@ -73,6 +73,7 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 		data, err := rd.readData(conn)
 		if err != nil || data == nil {
 			log.Println(err.Error())
+			conn.Close()
 			rd.connectionPool.removeConn(conn)
 			continue
 		} else {
@@ -102,7 +103,6 @@ func (rd *Redis) readData(conn net.Conn) ([]byte, error) {
 	if err != nil {
 		if err == io.EOF {
 			log.Println("Connection", conn.RemoteAddr(), "closed.")
-			conn.Close()
 			return nil, err
 		} else {
 			log.Println("Error reading data from connection", conn.RemoteAddr(), ":", err)
