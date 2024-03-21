@@ -11,9 +11,6 @@ import (
 )
 
 func (rd *Redis) setKey(command Command) error {
-	rd.mu.Lock()
-	defer rd.mu.Unlock()
-
 	rd.store[command.args[0]] = command.args[1]
 	rd.timestamp[command.args[0]] = time.Now()
 
@@ -34,9 +31,6 @@ func (rd *Redis) setKey(command Command) error {
 }
 
 func (rd *Redis) getKey(command Command) (int, string, error) {
-	rd.mu.Lock()
-	defer rd.mu.Unlock()
-
 	if _, exists := rd.store[command.args[0]]; !exists {
 		return -2, "", errors.New("no key \"" + command.args[0] + "\" found")
 	}
