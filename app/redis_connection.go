@@ -23,20 +23,21 @@ func (p *ConnectionPool) getConnLock() net.Conn {
 	return conn
 }
 
-func (p *ConnectionPool) putConn(conn net.Conn) {
+func (p *ConnectionPool) putConn(conn net.Conn) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
 	if len(p.conns) >= p.capacity {
-		log.Println("connection pool is full")
+		return fmt.Errorf("connection pool is full")
 	}
 
 	if err := conn.SetDeadline(time.Now()); err != nil {
 		conn.Close()
-		log.Println("connection is closed")
+		return fmt.Errorf("connection is closed")
 	}
 
 	p.conns = append(p.conns, conn)
+	return nil
 }
 
 func (p *ConnectionPool) removeConn(conn net.Conn) {
