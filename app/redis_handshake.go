@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 )
 
 func (rd *Redis) sendPing(conn net.Conn) {
@@ -103,7 +104,16 @@ func (rd *Redis) handlePing(command Command, conn net.Conn) error {
 }
 
 func (rd *Redis) handleWait(command Command, conn net.Conn) {
-	if rd.role == MASTER {
-		rd.sendChan <- NewPair(":0\r\n", conn)
-	}
+	go func() {
+		if rd.role == MASTER {
+			callTime := time.Now()
+			numreplicas, _ := strconv.Atoi(command.args[0])
+			waitTimeout, _ := strconv.Atoi(command.args[1])
+			for {
+				if time.Since(callTime) >= time.Duration(waitTimeout) || numreplicas <= len(rd.replicationSet) {
+					rd.sendChan <- NewPair(fmt.Sprintf(":%d\r\n", len(rd.replicationSet)), conn)
+				}
+			}
+		}
+	}()
 }
