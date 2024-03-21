@@ -77,7 +77,11 @@ func (rd *Redis) readTicker(readChan chan Pair[Command, net.Conn]) {
 						return response, conn
 					}
 				}
-				rd.sendChan <- sendItem(fmt.Sprintf("$%d\r\n%s\r\n", length, value), conn)
+				if length != -1 {
+					rd.sendChan <- sendItem(fmt.Sprintf("$%d\r\n%s\r\n", length, value), conn)
+				} else {
+					rd.sendChan <- sendItem(fmt.Sprintf("$%d\r\n", length), conn)
+				}
 			}
 		}
 	}
