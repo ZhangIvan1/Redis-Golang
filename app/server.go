@@ -144,15 +144,16 @@ func Make(config Config) *Redis {
 		rd.listener = listener
 	}
 
-	go rd.listenConnectionTicker()
+	go rd.sendTicker(rd.sendChan)
+	go rd.writeTicker(rd.writeChan)
+	go rd.readTicker(rd.readChan)
 	go rd.commandClassifyTicker(rd.commandChan)
 	go rd.handleConnectionTicker(rd.commandChan)
-	go rd.sendTicker(rd.sendChan)
+
 	if rd.role == SLAVE {
 		go rd.handshakeTicker()
 	}
-	go rd.writeTicker(rd.writeChan)
-	go rd.readTicker(rd.readChan)
+	go rd.listenConnectionTicker()
 
 	return rd
 }
