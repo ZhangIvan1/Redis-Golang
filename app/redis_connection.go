@@ -56,13 +56,13 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 				log.Println(err.Error())
 				continue
 			}
-			reqs, err := rd.buildRequest(data)
-			if err != nil {
-				log.Println(err.Error())
-				continue
-			}
 			conn := conn
 			go func() {
+				reqs, err := rd.buildRequest(data)
+				if err != nil {
+					log.Println(err.Error())
+					return
+				}
 				if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
 					log.Println("Error handleResponseLines: ", err.Error())
 				}
