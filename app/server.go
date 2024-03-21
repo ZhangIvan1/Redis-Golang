@@ -113,12 +113,12 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		// 等待终止信号
+
 		c := make(chan os.Signal, 1)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		<-c
 		fmt.Println("Shutting down the server...")
-		// 关闭服务器
+
 		if err := rd.listener.Close(); err != nil {
 			fmt.Println("Error closing redis server:", err)
 		}
