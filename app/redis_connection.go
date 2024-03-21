@@ -51,13 +51,14 @@ type Request struct {
 func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]) {
 	for {
 		for _, conn := range rd.connectionPool.conns {
-			reqs, err := rd.buildRequest(conn)
+			data, err := rd.readData(conn)
 			if err != nil {
-				log.Println("Error reading data:", err.Error())
-				conn.Close()
-				rd.connectionPool.remove(conn)
+				log.Println(err.Error())
 				continue
-			} else if len(reqs.Lines) == 0 {
+			}
+			reqs, err := rd.buildRequest(data)
+			if err != nil {
+				log.Println(err.Error())
 				continue
 			}
 			conn := conn
@@ -74,9 +75,7 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 	}
 }
 
-func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
-	req = Request{Lines: make([]string, 0), Commands: make([]Command, 0)}
-
+func (rd *Redis) readData(conn net.Conn) ([]byte, error) {
 	readBuffer := make([]byte, 4096)
 
 	n, err := conn.Read(readBuffer)
@@ -87,15 +86,24 @@ func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
 		} else {
 			log.Println("Error reading data from connection", conn.RemoteAddr(), ":", err)
 		}
-		return req, err
+		return nil, err
 	}
 
 	if n == 0 {
 		log.Println("No data read from connection", conn.RemoteAddr())
+		return nil, nil
+	}
+
+	return readBuffer[:n], nil
+}
+
+func (rd *Redis) buildRequest(data []byte) (req Request, err error) {
+	if len(data) == 0 {
+		log.Println("No data received to build request")
 		return req, nil
 	}
 
-	req.Lines = strings.Split(string(readBuffer[:n]), "\r\n")
+	req.Lines = strings.Split(string(data), "\r\n")
 	log.Println(req.Lines)
 
 	for line := 0; line < len(req.Lines); line++ {
