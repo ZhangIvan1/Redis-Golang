@@ -11,15 +11,12 @@ type Slave struct {
 	toSlave net.Conn
 }
 
-func (rd *Redis) doReplication(command Command) error {
+func (rd *Redis) doReplication(command Command) {
 	fmt.Printf("i have %d to send\n", len(rd.replicationSet))
-	for slave := 0; slave < len(rd.replicationSet); slave++ {
-		fmt.Printf("sent replication to: %s\n", rd.replicationSet[slave].port)
-		if _, err := rd.replicationSet[slave].toSlave.Write([]byte(command.buildRequest())); err != nil {
-			return err
-		}
+	for _, slave := range rd.replicationSet {
+		fmt.Printf("sent replication to: %s\n", slave.port)
+		rd.sendChan <- NewPair(command.buildRequest(), slave.toSlave)
 	}
-	return nil
 }
 
 func (cm *Command) buildRequest() string {
@@ -32,8 +29,4 @@ func (cm *Command) buildRequest() string {
 	fmt.Println("build request:", res)
 
 	return res
-}
-
-func (rd *Redis) listenReplication(conn net.Conn) {
-	rd.handleConnection(conn)
 }

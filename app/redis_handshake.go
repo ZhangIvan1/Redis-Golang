@@ -3,40 +3,31 @@ package main
 import (
 	"encoding/hex"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"strconv"
 )
 
 func (rd *Redis) sendPing(conn net.Conn) {
-	if _, err := conn.Write([]byte("*1\r\n$4\r\nping\r\n")); err != nil {
-		fmt.Println("Error occur during handshaking to master:", err.Error())
+	rd.sendChan <- NewPair("*1\r\n$4\r\nping\r\n", conn)
+
+	if err := rd.connectionPool.put(conn); err != nil {
+		log.Println("Error occur during insert to connectionPool:", err.Error())
 		return
 	}
-
-	rd.masterConn = conn
-	go rd.handleConnection(rd.masterConn)
 	rd.sendReplConf(conn)
 }
 
 func (rd *Redis) sendReplConf(conn net.Conn) {
-	if _, err := conn.Write([]byte("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n" + rd.config.port + "\r\n")); err != nil {
-		fmt.Println("Error occur during handshaking to master:", err.Error())
-		return
-	}
-	if _, err := conn.Write([]byte("*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n")); err != nil {
-		fmt.Println("Error occur during handshaking to master:", err.Error())
-		return
-	}
+	rd.sendChan <- NewPair("*3\r\n$8\r\nREPLCONF\r\n$14\r\nlistening-port\r\n$4\r\n", conn)
+	rd.sendChan <- NewPair("*3\r\n$8\r\nREPLCONF\r\n$4\r\ncapa\r\n$6\r\npsync2\r\n", conn)
 
 	rd.sendPSync(conn)
 }
 
 func (rd *Redis) sendPSync(conn net.Conn) {
-	if _, err := conn.Write([]byte("*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n")); err != nil {
-		fmt.Println("Error occur during handshaking to master:", err.Error())
-		return
-	}
+	rd.sendChan <- NewPair("*3\r\n$5\r\nPSYNC\r\n$1\r\n?\r\n$2\r\n-1\r\n", conn)
 }
 
 func (rd *Redis) handshakeTicker() {
@@ -59,19 +50,18 @@ func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {
 			}
 		}
 
-		if _, err := conn.Write([]byte("+OK\r\n")); err != nil {
-			return err
-		}
+		rd.sendChan <- NewPair("+OK\r\n", conn)
 	} else {
 		for i := 0; i < len(command.args); i++ {
 			if command.args[i] == "GETACK" {
-				if _, err := conn.Write([]byte(fmt.Sprintf(
-					"*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$%d\r\n%d\r\n",
-					len(strconv.Itoa(rd.masterReplOffset)),
-					rd.masterReplOffset,
-				))); err != nil {
-					return err
-				}
+				rd.sendChan <- NewPair(
+					fmt.Sprintf(
+						"*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$%d\r\n%d\r\n",
+						len(strconv.Itoa(rd.masterReplOffset)),
+						rd.masterReplOffset,
+					),
+					conn,
+				)
 			}
 		}
 	}
@@ -80,9 +70,7 @@ func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {
 }
 
 func (rd *Redis) handlePSync(command Command, conn net.Conn) error {
-	if _, err := conn.Write([]byte("+FULLRESYNC " + rd.masterReplId + " " + strconv.Itoa(rd.masterReplOffset) + "\r\n")); err != nil {
-		return err
-	}
+	rd.sendChan <- NewPair("+FULLRESYNC "+rd.masterReplId+" "+strconv.Itoa(rd.masterReplOffset)+"\r\n", conn)
 	return rd.sendRDB(conn)
 }
 
@@ -92,9 +80,7 @@ func (rd *Redis) sendRDB(conn net.Conn) error {
 	if contents, err := hex.DecodeString(RDBContents); err != nil {
 		return err
 	} else {
-		if _, err := conn.Write([]byte(fmt.Sprintf("$%d\r\n%s", len(contents), contents))); err != nil {
-			return err
-		}
+		rd.sendChan <- NewPair(fmt.Sprintf("$%d\r\n%s", len(contents), contents), conn)
 	}
 
 	return nil
@@ -102,15 +88,14 @@ func (rd *Redis) sendRDB(conn net.Conn) error {
 
 func (rd *Redis) handlePing(command Command, conn net.Conn) error {
 	if rd.role == MASTER {
-		if _, err := conn.Write([]byte("+PONG\r\n")); err != nil {
-			return err
-		}
+		rd.sendChan <- NewPair("+PONG\r\n", conn)
 	} else if rd.role == SLAVE {
 		rd.masterReplOffset += command.commandOffset
 		if rd.masterConn != conn {
 			rd.masterConn.Close()
+			rd.connectionPool.remove(rd.masterConn)
 			rd.masterConn = conn
-			go rd.handleConnection(rd.masterConn)
+			rd.connectionPool.put(rd.masterConn)
 		}
 	}
 	return nil

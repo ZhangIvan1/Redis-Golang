@@ -11,6 +11,14 @@ import (
 	"time"
 )
 
+type Pair[L, R any] func() (L, R)
+
+func NewPair[L, R any](left L, right R) Pair[L, R] {
+	return func() (L, R) {
+		return left, right
+	}
+}
+
 const (
 	DEFAULT_TYPE string = "tcp"
 	DEFAULT_HOST string = "0.0.0.0"
@@ -55,6 +63,13 @@ type Redis struct {
 	masterHost       string
 	masterPort       string
 	masterConn       net.Conn
+
+	connectionPool ConnectionPool
+
+	commandChan chan Pair[Command, net.Conn]
+	writeChan   chan Pair[Command, net.Conn]
+	readChan    chan Pair[Command, net.Conn]
+	sendChan    chan Pair[string, net.Conn]
 }
 
 func main() {
@@ -117,16 +132,20 @@ func Make(config Config) *Redis {
 
 	rd.masterReplOffset = 0
 
-	err := error(nil)
-	rd.listener, err = net.Listen(config.netType, config.host+":"+config.port)
-	if err != nil {
+	if listener, err := net.Listen(config.netType, config.host+":"+config.port); err != nil {
 		log.Fatalln("Failed to bind to port", config.port, err)
+	} else {
+		rd.listener = listener
 	}
 
-	go rd.handleConnectionTicker()
+	go rd.listenConnectionTicker()
+	go rd.handleConnectionTicker(rd.commandChan)
 	if rd.role == SLAVE {
 		go rd.handshakeTicker()
 	}
+	go rd.commandClassifyTicker(rd.commandChan)
+	go rd.writeTicker(rd.writeChan)
+	go rd.readTicker(rd.readChan)
 
 	return rd
 }

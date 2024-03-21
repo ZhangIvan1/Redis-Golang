@@ -6,44 +6,71 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 )
+
+type ConnectionPool struct {
+	mu       sync.Mutex
+	conns    []net.Conn
+	capacity int
+}
+
+func (p *ConnectionPool) put(conn net.Conn) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	if len(p.conns) >= p.capacity {
+		return fmt.Errorf("connection pool is full")
+	}
+
+	p.conns = append(p.conns, conn)
+	return nil
+}
+
+func (p *ConnectionPool) remove(conn net.Conn) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	var newConns []net.Conn
+	for _, c := range p.conns {
+		if c != conn {
+			newConns = append(newConns, c)
+		}
+	}
+	p.conns = newConns
+}
 
 type Request struct {
 	Lines    []string
 	Commands []Command
 }
 
-func (rd *Redis) handleConnection(conn net.Conn) {
-
-	fmt.Println("New connection from:", conn.RemoteAddr().String())
-
+func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]) {
 	for {
-		reqs, err := rd.buildRequest(conn)
-		if err != nil {
-			println("Error reading data:", err.Error())
-			conn.Close()
-			return
-		}
-		go func() {
-			if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
-				log.Fatalln("Error handleResponseLines: ", err.Error())
-				//conn.Close()
-				//return
+		for _, conn := range rd.connectionPool.conns {
+			reqs, err := rd.buildRequest(conn)
+			if err != nil {
+				log.Println("Error reading data:", err.Error())
+				conn.Close()
+				rd.connectionPool.remove(conn)
+				continue
 			}
-
-			for com := 0; com < len(reqs.Commands); com++ {
-				fmt.Println(
-					"Now running:",
-					interface{}(reqs.Commands[com].formatCommand()),
-				)
-				reqs.Commands[com].commandOffset = len(reqs.Commands[com].buildRequest())
-				if err := rd.runCommand(reqs.Commands[com], conn); err != nil {
-					log.Fatalln("Error runCommand:", err.Error())
-					//conn.Close()
-					//return
+			conn := conn
+			go func() {
+				if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
+					log.Println("Error handleResponseLines: ", err.Error())
 				}
-			}
-		}()
+				for com := 0; com < len(reqs.Commands); com++ {
+					reqs.Commands[com].commandOffset = len(reqs.Commands[com].buildRequest())
+					commandItem := func(command Command, conn net.Conn) func() (Command, net.Conn) {
+						return func() (Command, net.Conn) {
+							return command, conn
+						}
+					}
+					commandChan <- commandItem(reqs.Commands[com], conn)
+				}
+			}()
+		}
 	}
 }
 
@@ -114,14 +141,28 @@ func (rd *Redis) handleResponseLines(reqLine []string, commands *[]Command) erro
 	return nil
 }
 
-func (rd *Redis) handleConnectionTicker() {
+func (rd *Redis) listenConnectionTicker() {
 	for {
 		if connection, err := rd.listener.Accept(); err != nil {
 			fmt.Println("Error accepting connection:", err.Error())
 			return
 		} else {
-			go rd.handleConnection(connection)
+			log.Println("New connection from:", connection.RemoteAddr().String())
+			if err := rd.connectionPool.put(connection); err != nil {
+				fmt.Println("Error accepting connection:", err.Error())
+				return
+			}
+		}
+	}
+}
 
+func (rd *Redis) sendTicker(sendChan chan Pair[string, net.Conn]) {
+	for {
+		for sendOption := range sendChan {
+			payload, conn := sendOption()
+			if _, err := conn.Write([]byte(payload)); err != nil {
+				log.Println(err.Error())
+			}
 		}
 	}
 }
