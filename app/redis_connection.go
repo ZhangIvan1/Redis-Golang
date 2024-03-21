@@ -206,6 +206,7 @@ func (rd *Redis) sendTicker(sendChan chan Pair[string, net.Conn]) {
 	for {
 		for sendOption := range sendChan {
 			payload, conn := sendOption()
+			log.Println("send payload:", payload)
 			if _, err := conn.Write([]byte(payload)); err != nil {
 				log.Println(err.Error())
 			}
