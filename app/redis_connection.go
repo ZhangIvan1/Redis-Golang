@@ -100,6 +100,7 @@ func (rd *Redis) readData(conn net.Conn) ([]byte, error) {
 	readBuffer := make([]byte, 4096)
 
 	n, err := conn.Read(readBuffer)
+	log.Println("read completed")
 	if err != nil {
 		if err == io.EOF {
 			log.Println("Connection", conn.RemoteAddr(), "closed.")
