@@ -75,6 +75,8 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 }
 
 func (rd *Redis) buildRequest(conn net.Conn) (req Request, err error) {
+	req = Request{Lines: make([]string, 0), Commands: make([]Command, 0)}
+
 	readBuffer := make([]byte, 4096)
 
 	n, err := conn.Read(readBuffer)
