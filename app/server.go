@@ -7,6 +7,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 	"time"
 )
@@ -53,6 +54,8 @@ const (
 
 type Redis struct {
 	config Config
+
+	mu sync.Locker
 
 	listener net.Listener
 
