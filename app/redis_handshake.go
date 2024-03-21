@@ -54,6 +54,7 @@ func (rd *Redis) handleReplConf(command Command, conn net.Conn) error {
 	} else {
 		for i := 0; i < len(command.args); i++ {
 			if command.args[i] == "GETACK" {
+				rd.masterReplOffset += command.commandOffset
 				rd.sendChan <- NewPair(
 					fmt.Sprintf(
 						"*3\r\n$8\r\nREPLCONF\r\n$3\r\nACK\r\n$%d\r\n%d\r\n",
