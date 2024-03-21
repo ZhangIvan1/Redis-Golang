@@ -31,7 +31,7 @@ func (p *ConnectionPool) putConn(conn net.Conn) error {
 		return fmt.Errorf("connection pool is full")
 	}
 
-	if err := conn.SetDeadline(time.Now()); err != nil {
+	if err := conn.SetDeadline(time.Now().Add(time.Duration(500 * time.Millisecond))); err != nil {
 		conn.Close()
 		return fmt.Errorf("connection is closed")
 	}
