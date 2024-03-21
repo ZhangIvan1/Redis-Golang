@@ -31,11 +31,6 @@ func (p *ConnectionPool) putConn(conn net.Conn) error {
 		return fmt.Errorf("connection pool is full")
 	}
 
-	if err := conn.SetDeadline(time.Now().Add(time.Duration(5000 * time.Millisecond))); err != nil {
-		conn.Close()
-		return fmt.Errorf("connection is closed")
-	}
-
 	p.conns = append(p.conns, conn)
 	return nil
 }
@@ -78,6 +73,7 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 		data, err := rd.readData(conn)
 		if err != nil || data == nil {
 			log.Println(err.Error())
+			rd.connectionPool.removeConn(conn)
 			continue
 		} else {
 			go func() {
