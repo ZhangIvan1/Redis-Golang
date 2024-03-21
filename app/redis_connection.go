@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 type ConnectionPool struct {
@@ -50,28 +51,49 @@ type Request struct {
 
 func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]) {
 	for {
-		for _, conn := range rd.connectionPool.conns {
-			data, err := rd.readData(conn)
+		var conn net.Conn
+		rd.connectionPool.mu.Lock()
+		if len(rd.connectionPool.conns) > 0 {
+			conn = rd.connectionPool.conns[0]
+			rd.connectionPool.conns = rd.connectionPool.conns[1:]
+		}
+		rd.connectionPool.mu.Unlock()
+
+		if conn == nil {
+			time.Sleep(time.Millisecond * 100)
+			continue
+		}
+
+		data, err := rd.readData(conn)
+		if err != nil {
+			log.Println(err.Error())
+			rd.connectionPool.mu.Lock()
+			rd.connectionPool.conns = append(rd.connectionPool.conns, conn)
+			rd.connectionPool.mu.Unlock()
+			continue
+		}
+
+		go func() {
+			reqs, err := rd.buildRequest(data)
 			if err != nil {
 				log.Println(err.Error())
-				continue
+				rd.connectionPool.mu.Lock()
+				rd.connectionPool.conns = append(rd.connectionPool.conns, conn)
+				rd.connectionPool.mu.Unlock()
+				return
 			}
-			conn := conn
-			go func() {
-				reqs, err := rd.buildRequest(data)
-				if err != nil {
-					log.Println(err.Error())
-					return
-				}
-				if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
-					log.Println("Error handleResponseLines: ", err.Error())
-				}
-				for _, command := range reqs.Commands {
-					command.commandOffset = len(command.buildRequest())
-					commandChan <- NewPair(command, conn)
-				}
-			}()
-		}
+			if err := rd.handleResponseLines(reqs.Lines, &reqs.Commands); err != nil {
+				log.Println("Error handleResponseLines: ", err.Error())
+			}
+			for _, command := range reqs.Commands {
+				command.commandOffset = len(command.buildRequest())
+				commandChan <- NewPair(command, conn)
+			}
+
+			rd.connectionPool.mu.Lock()
+			rd.connectionPool.conns = append(rd.connectionPool.conns, conn)
+			rd.connectionPool.mu.Unlock()
+		}()
 	}
 }
 
