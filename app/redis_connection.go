@@ -78,9 +78,6 @@ func (rd *Redis) handleConnectionTicker(commandChan chan Pair[Command, net.Conn]
 		}
 
 		go func() {
-			rd.mu.Lock()
-			defer rd.mu.Unlock()
-
 			reqs, err := rd.buildRequest(data)
 			if err != nil {
 				log.Println(err.Error())
