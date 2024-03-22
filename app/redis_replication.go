@@ -37,11 +37,11 @@ func (rd *Redis) handleWait(command Command, conn net.Conn) {
 			callTime := time.Now()
 			numreplicas, _ := strconv.Atoi(command.args[0])
 			waitTimeout, _ := strconv.Atoi(command.args[1])
-			for {
-				if time.Since(callTime) >= time.Duration(waitTimeout) || numreplicas <= len(rd.replicationSet) {
-					rd.sendChan <- NewPair(fmt.Sprintf(":%d\r\n", len(rd.replicationSet)), conn)
-				}
+
+			if time.Since(callTime) >= time.Duration(waitTimeout) || numreplicas <= len(rd.replicationSet) {
+				rd.sendChan <- NewPair(fmt.Sprintf(":%d\r\n", len(rd.replicationSet)), conn)
 			}
+
 		}
 	}()
 }
